@@ -2,6 +2,7 @@ package com.team2898.engine.controlLoops
 
 import com.team2898.engine.async.AsyncLooper
 import com.team2898.engine.async.IAsyncLoop
+import com.team2898.engine.extensions.drivetrain.blockJoin
 import edu.wpi.first.wpilibj.Timer
 
 /* import edu.wpi.first.wpilibj.util.BoundaryException */
@@ -12,41 +13,44 @@ import edu.wpi.first.wpilibj.Timer
  * @author Solomon
  */
 
-open class AsyncPID(
-        Kp: Double=0.0,
+class AsyncPID(
+        Kp: Double = 0.0,
         Ki: Double = 0.0,
         Kd: Double = 0.0,
         Kf: Double = 0.0,
         integratorMax: Double = Double.POSITIVE_INFINITY,
         currentTime: Double = Timer.getFPGATimestamp(),
         execHz: Double
-): StandardPID(Kp, Ki, Kd, Kf, integratorMax, currentTime), IAsyncLoop {
+) : StandardPID(Kp, Ki, Kd, Kf, integratorMax, currentTime), IAsyncLoop {
 
-    var m_sensorValue: Double = 0.0 // Current sensor value
-    var m_sensorOutput: Double = 0.0
+    var sensorValue: Double = 0.0 // Current sensor value
+    var sensorOutput: Double = 0.0
+
+    var getSensorInput: () -> Double = {
+        throw NotImplementedError("Warning: getSensorInput() -> Double not implemented")
+        0.0
+    }
+        @Synchronized get
+        @Synchronized set
+
+    var useControllerOutput: (Double) -> Unit = { throw NotImplementedError("Warning: useControllerOutput (Double) -> Unit not implemented") }
+        @Synchronized set
+        @Synchronized get
 
     var m_asyncLooper: AsyncLooper = AsyncLooper(execHz) {
-        m_sensorValue = getSensorInput()
-        m_sensorOutput = update(m_sensorOutput, currentTime = Timer.getFPGATimestamp())
+        sensorValue = getSensorInput()
+        sensorOutput = update(sensorOutput, currentTime = Timer.getFPGATimestamp())
     }
 
     override fun getLoop(): AsyncLooper = m_asyncLooper
 
     @Synchronized
-    override fun start() = m_asyncLooper.start()
+    override fun start() = m_asyncLooper.start().blockJoin()
 
     @Synchronized
-    override fun stop() = m_asyncLooper.stop()
+    override fun stop() = m_asyncLooper.stop().blockJoin()
 
     @Synchronized
     override fun setTargetHz(hz: Double) = m_asyncLooper.setTargetHz(hz)
-
-
-    // Override this and make it return the input from the relavent sensor
-    val getSensorInput: () -> Double = {0.0}
-
-    // Override this and use it to utilize the output from the PID controller
-    val useSensorOutput: (Double) -> Unit = {}
-
 
 }

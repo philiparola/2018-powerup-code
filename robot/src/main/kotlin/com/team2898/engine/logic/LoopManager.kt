@@ -1,30 +1,33 @@
 package com.team2898.engine.logic
 
-object LoopManager {
-    val loops= mutableListOf<ILooper>()
+import com.team2898.engine.logging.LogLevel
+import com.team2898.engine.logging.Logger
+import com.team2898.engine.logging.reflectLocation
 
-    @Synchronized fun register(loop: ILooper) {
+object LoopManager {
+    val loops = mutableListOf<ILooper>()
+
+    @Synchronized
+    fun register(loop: ILooper) {
         loops.add(loop)
     }
 
-    fun onDisable() {
-        loops.forEach { iloop ->
-            if (iloop.enableTimes.contains(GamePeriods.DISABLE)) iloop.loop.start()
-            else iloop.loop.stop()
-        }
-    }
+    @Synchronized
+    fun onDisable() = setPeriod(GamePeriods.DISABLE)
 
-    fun onAutonomous() {
-        loops.forEach { iloop ->
-            if (iloop.enableTimes.contains(GamePeriods.AUTO)) iloop.loop.start()
-            else iloop.loop.stop()
-        }
-    }
+    @Synchronized
+    fun onAutonomous() = setPeriod(GamePeriods.AUTO)
 
-    fun onTeleop() {
+    @Synchronized
+    fun onTeleop() = setPeriod(GamePeriods.TELEOP)
+
+    @Synchronized
+    fun setPeriod(period: GamePeriods) {
         loops.forEach { iloop ->
-            if (iloop.enableTimes.contains(GamePeriods.TELEOP)) iloop.loop.start()
-            else iloop.loop.stop()
+            if (iloop.enableTimes.contains(period)) {
+                Logger.logInfo(reflectLocation(), LogLevel.DEBUG, "Starting loop $iloop")
+                iloop.loop.start()
+            } else iloop.loop.stop()
         }
     }
 }

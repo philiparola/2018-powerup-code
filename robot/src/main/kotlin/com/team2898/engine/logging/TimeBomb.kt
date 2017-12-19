@@ -50,7 +50,7 @@ class TimeBomb(val time: Double, val startArmed: Boolean = true, val throwExcept
      * @param block code to run
      * @param useAsync whether or not we should dispatch a coroutine to run it
      */
-    fun setOnBlow(block: () -> Unit, useAsync: Boolean = false) {
+    fun setOnBlow(useAsync: Boolean = false, block: () -> Unit) {
         onBlow = block
         this.useAsync = useAsync
     }
@@ -60,7 +60,7 @@ class TimeBomb(val time: Double, val startArmed: Boolean = true, val throwExcept
             throw Exception("TimeBomb not defused in time")
         }
         if (printLogger) {
-            // TODO {Write logger and have this log to err}
+            Logger.logInfo(reflectLocation(), LogLevel.WARNING, "TimeBomb timer expired")
         }
 
         if (!this.useAsync) onBlow()

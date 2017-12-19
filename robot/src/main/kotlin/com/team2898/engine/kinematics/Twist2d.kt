@@ -3,6 +3,7 @@ package com.team2898.engine.kinematics
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D
 
 /** Stores a "twist" of our 2d position (2d linear + 2d angular component)
+ * Modeled off of the ROS type
  * @param dx delta position, x component
  * @param dy delta position, y component
  * @param dtheta delta rotation, in radians
@@ -28,6 +29,6 @@ class Twist2d {
     constructor (linear: Translation2d, angular: Rotation2d) {
         this.dx = linear.x
         this.dy = linear.y
-        this.dtheta = angular.radians()
+        this.dtheta = angular.radians
     }
 }

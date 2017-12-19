@@ -22,7 +22,6 @@ class Translation2d: Interpolable<Translation2d> {
         }
         set(value) {position = Vector2D(x, value)}
 
-    val fmt: DecimalFormat = DecimalFormat("#0.000")
 
     constructor() {
     }
@@ -57,7 +56,7 @@ class Translation2d: Interpolable<Translation2d> {
     }
 
     fun rotateByOrigin(rotation: Rotation2d): Translation2d {
-        return Translation2d(rotateVector2D(position, rotation.vector()))
+        return Translation2d(rotateVector2D(position, rotation.rotation))
     }
 
     fun inverse(): Translation2d {
@@ -80,6 +79,6 @@ class Translation2d: Interpolable<Translation2d> {
     }
 
     override fun toString(): String {
-        return "(${fmt.format(position.x)}, ${fmt.format(position.y)})"
+        return "[${"%.3f".format(position.x)}, ${"%.3f".format(position.y)}]"
     }
 }
