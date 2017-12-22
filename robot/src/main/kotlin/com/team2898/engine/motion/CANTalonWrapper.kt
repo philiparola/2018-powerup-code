@@ -8,6 +8,7 @@ import com.team2898.engine.logging.reflectLocation
 import com.team2898.engine.signalProcessing.MovingAverageFilter
 import com.team2898.engine.types.MinMax
 import com.team2898.engine.util.clamp
+import com.team2898.robot.Robot
 import edu.wpi.first.wpilibj.Timer
 import jdk.net.SocketFlow
 
