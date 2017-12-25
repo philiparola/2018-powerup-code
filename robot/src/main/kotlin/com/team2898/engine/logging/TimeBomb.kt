@@ -22,7 +22,7 @@ class TimeBomb(val time: Double, val startArmed: Boolean = true, val throwExcept
         if (startArmed) fuse()
     }
 
-    private var m_job: Job = launch(context = CommonPool, start = CoroutineStart.LAZY) {
+    private var job: Job = goLazy {
         delay(time.toLong() * 1000)
         err()
         blown = true
@@ -33,7 +33,7 @@ class TimeBomb(val time: Double, val startArmed: Boolean = true, val throwExcept
      * Only necessary if startArmed is specified to be false
      */
     fun fuse() {
-        m_job.start()
+        job.start()
     }
 
     /**
@@ -42,7 +42,7 @@ class TimeBomb(val time: Double, val startArmed: Boolean = true, val throwExcept
      */
     fun defuse() {
         if (!blown)
-            m_job.cancel()
+            job.cancel()
     }
 
     /**

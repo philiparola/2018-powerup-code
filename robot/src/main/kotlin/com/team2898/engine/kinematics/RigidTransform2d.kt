@@ -3,7 +3,6 @@ package com.team2898.engine.kinematics
 import com.team2898.engine.types.Interpolable
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D
 
-
 // Represents 2D pose (position, orientation) on the x, y plane
 class RigidTransform2d : Interpolable<RigidTransform2d> {
     companion object {
@@ -23,8 +22,8 @@ class RigidTransform2d : Interpolable<RigidTransform2d> {
         fun fromDelta(twist: Twist2d): RigidTransform2d {
             val sinTheta: Double = Math.sin(twist.dtheta)
             val cosTheta: Double = Math.cos(twist.dtheta)
-            var s: Double
-            var c: Double
+            val s: Double
+            val c: Double
 
             if (Math.abs(twist.dtheta) < kEpsilon) {
                 s = 1.0 - (1.0 / 6.0) * Math.pow(twist.dtheta, 2.0)

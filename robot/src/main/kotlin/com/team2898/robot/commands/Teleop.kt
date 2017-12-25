@@ -1,18 +1,12 @@
 package com.team2898.robot.commands
 
-import com.ctre.CANTalon
 import com.team2898.engine.kinematics.Rotation2d
 import com.team2898.engine.motion.CheesyDrive
 import edu.wpi.first.wpilibj.command.Command
 import com.team2898.robot.OI
-import com.team2898.robot.VisionComms
 import com.team2898.robot.config.OIConf.*
 import com.team2898.robot.config.TeleopConfig.useArmController
-import com.team2898.robot.subsystems.Claw
 import com.team2898.robot.subsystems.Drivetrain
-import com.team2898.robot.subsystems.Elbow
-import com.team2898.robot.subsystems.Wrist
-import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard as sd
 
 class Teleop : Command() {

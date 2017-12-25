@@ -5,30 +5,16 @@ import kotlinx.coroutines.experimental.sync.Mutex
 import kotlinx.coroutines.experimental.sync.withLock
 
 class SafeVar<T>(var value: T) {
-    val lock: Mutex = Mutex()
 
-    @Synchronized
-    fun get(): T = runBlocking<T> {
-        return@runBlocking lock.withLock<T>() {
-            return@withLock value
-        }
+    fun get(): T = synchronized(this) { return value }
+
+    fun set(new: T) = synchronized(this) {
+        value = new
     }
 
-    @Synchronized
-    fun set(new: T) {
-        runBlocking {
-            lock.withLock {
-                value = new
-            }
-        }
+    fun runSafe(block: () -> Unit) = synchronized(this) {
+        block()
     }
 
-    @Synchronized
-    fun runSafe(block: () -> Unit) {
-        runBlocking<Unit> {
-            lock.withLock {
-                block()
-            }
-        }
-    }
+
 }

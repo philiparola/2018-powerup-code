@@ -1,20 +1,14 @@
 package com.team2898.robot
 
 import com.team2898.engine.kinematics.Rotation2d
-import com.team2898.robot.config.OIConf.*
-import com.team2898.robot.config.TeleopConfig.armControllerElbowOffset
-import com.team2898.robot.config.TeleopConfig.armControllerTicsToDegreesConstant
-import com.team2898.robot.config.TeleopConfig.armControllerWristOffset
 import com.team2898.robot.subsystems.Drivetrain
 import edu.wpi.first.wpilibj.Joystick
 import edu.wpi.first.wpilibj.networktables.NetworkTable
 
 object OI {
 
-    val networkTable = NetworkTable.getTable("controller")
-
     fun deadzone(value: Double): Double {
-        if (Math.abs(value) < DEADZONE_THRESHOLD) return 0.0
+        if (Math.abs(value) < 0.15) return 0.0
         return value
     }
 
@@ -36,14 +30,6 @@ object OI {
 
     val driverController: Joystick = Joystick(0)
     val operatorController: Joystick = Joystick(1)
-
-    val armControllerWristEncoder: Double
-        get() =
-            (-networkTable.getNumber("enc1", 0.0) * armControllerTicsToDegreesConstant - armControllerWristOffset) % 360
-
-    val armControllerElbowEncoder: Double
-        get() =
-            (-networkTable.getNumber("enc2", 0.0) * armControllerTicsToDegreesConstant + armControllerElbowOffset) % 360
 
     val throttle
         get() = process(driverController.getRawAxis(1), square = true)
@@ -71,13 +57,4 @@ object OI {
     val operatorRightY
         get() = process(operatorController.getRawAxis(5))
 
-    val claw
-        get() = driverController.getRawButton(2) || driverController.getRawButton(1) ||
-                operatorController.getRawButton(2) || operatorController.getRawButton(1) ||
-                operatorController.getRawButton(3) || operatorController.getRawButton(4)
-
-    val clawOpen
-        get() = driverController.getRawButton(0)
-    val clawClose
-        get() = driverController.getRawButton(1)
 }

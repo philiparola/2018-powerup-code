@@ -18,6 +18,9 @@ operator fun Vector2D.times(scalar: Double): Vector2D = scalarMultiply(scalar)
 
 operator fun Vector2D.div(scalar: Double): Vector2D = scalarMultiply(1 / scalar)
 
+operator fun Vector2D.unaryPlus(): Vector2D = Vector2D(+this.x, +this.y)
+operator fun Vector2D.unaryMinus(): Vector2D = Vector2D(-this.x, -this.y)
+
 val Vector2D.l1: Double
     get() = norm1
 

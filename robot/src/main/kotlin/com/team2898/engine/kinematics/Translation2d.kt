@@ -1,5 +1,8 @@
 package com.team2898.engine.kinematics
 
+import com.team2898.engine.extensions.Vector2D.l2
+import com.team2898.engine.extensions.Vector2D.plus
+import com.team2898.engine.extensions.Vector2D.unaryMinus
 import com.team2898.engine.math.linear.rotateVector2D
 import com.team2898.engine.types.Interpolable
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D
@@ -7,31 +10,29 @@ import java.text.DecimalFormat
 
 
 // Represents a 2D translation on the x, y plane
-class Translation2d: Interpolable<Translation2d> {
-    private var position = Vector2D(0.0, 0.0)
+class Translation2d : Interpolable<Translation2d> {
+    var position = Vector2D(0.0, 0.0)
 
     var x: Double
-        get() {
-            return position.x
+        get() = position.x
+        set(value) {
+            position = Vector2D(value, y)
         }
-        set(value) {position = Vector2D(value, y)}
 
     var y: Double
-        get() {
-            return position.y
+        get() = position.y
+        set(value) {
+            position = Vector2D(x, value)
         }
-        set(value) {position = Vector2D(x, value)}
 
-
-    constructor() {
-    }
+    constructor()
 
     constructor(x: Double, y: Double) {
         position = Vector2D(x, y)
     }
 
     constructor(toCopy: Translation2d) {
-        position = Vector2D(toCopy.x, toCopy.y)
+        position = toCopy.position
     }
 
     constructor(vector: Vector2D) {
@@ -39,46 +40,36 @@ class Translation2d: Interpolable<Translation2d> {
     }
 
     /**
-    * Normalized distance (distance to origin)
-    */
-    fun norm(): Double = position.distance(Vector2D.ZERO)
+     * Normalized distance (distance to origin)
+     */
+    val norm: Double
+        get() = position.l2
 
-    fun normalized(): Vector2D = position.normalize()
+    val normalized: Vector2D
+        get() = position.normalize()
 
-    fun vector(): Vector2D = position
+    infix fun translateBy(other: Translation2d): Translation2d = translateBy(other.position)
+    infix fun translateBy(other: Vector2D): Translation2d =
+            Translation2d(position + other)
 
-    fun translateBy(other: Translation2d): Translation2d {
-        return Translation2d(position.x + other.x, position.y + other.y)
-    }
+    infix fun rotateByOrigin(rotation: Rotation2d): Translation2d =
+            Translation2d(rotateVector2D(position, rotation.rotation))
 
-    fun translateBy(other: Vector2D): Translation2d {
-        return Translation2d(position.x + other.x, position.y + other.y)
-    }
+    fun inverse(): Translation2d = Translation2d(-position)
 
-    fun rotateByOrigin(rotation: Rotation2d): Translation2d {
-        return Translation2d(rotateVector2D(position, rotation.rotation))
-    }
+    override fun interpolate(upperVal: Translation2d, interpolatePoint: Double): Translation2d =
+            when {
+                (interpolatePoint <= 0) -> Translation2d(this)
+                (interpolatePoint >= 1) -> Translation2d(upperVal)
+                else -> extrapolate(upperVal, interpolatePoint)
+            }
 
-    fun inverse(): Translation2d {
-        return Translation2d(-position.x, -position.y)
-    }
+    fun extrapolate(slopePoint: Translation2d, extrapolatePoint: Double): Translation2d =
+            Translation2d(
+                    extrapolatePoint * (slopePoint.x - position.x) + position.x,
+                    extrapolatePoint * (slopePoint.y - position.y) + position.y
+            )
 
-    override fun interpolate(upperVal: Translation2d, interpolatePoint: Double): Translation2d {
-        when {
-            (interpolatePoint <= 0) -> return Translation2d(this)
-            (interpolatePoint >= 1) -> return Translation2d(upperVal)
-            else -> return extrapolate(upperVal, interpolatePoint)
-        }
-    }
-
-    fun extrapolate(slopePoint: Translation2d, extrapolatePoint: Double): Translation2d {
-        return Translation2d(
-                extrapolatePoint * (slopePoint.x - position.x) + position.x,
-                extrapolatePoint * (slopePoint.y - position.y) + position.y
-        )
-    }
-
-    override fun toString(): String {
-        return "[${"%.3f".format(position.x)}, ${"%.3f".format(position.y)}]"
-    }
+    override fun toString(): String =
+            "[${"%.3f".format(position.x)}, ${"%.3f".format(position.y)}]"
 }

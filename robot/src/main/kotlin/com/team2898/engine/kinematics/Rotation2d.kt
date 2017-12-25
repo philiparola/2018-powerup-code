@@ -40,10 +40,16 @@ class Rotation2d : Interpolable<Rotation2d> {
         rotation = toSetVector.normalize()
     }
 
-    val cos: Double
+    var cos: Double
         get() = rotation.x
-    val sin: Double
+        set(value) {
+            rotation = Vector2D(value, rotation.x)
+        }
+    var sin: Double
         get() = rotation.y
+        set(value) {
+            rotation = Vector2D(rotation.y, value)
+        }
 
     val tan: Double
         get() =
@@ -51,11 +57,13 @@ class Rotation2d : Interpolable<Rotation2d> {
             else if (rotation.y >= 0.0) Double.POSITIVE_INFINITY
             else Double.NEGATIVE_INFINITY
 
-    val radians: Double
+    var radians: Double
         get() = rotation.atan2
+        set(value) {rotation = createFromRadians(value).rotation}
 
-    val degrees: Double
+    var degrees: Double
         get() = Math.toDegrees(radians)
+        set(value) {rotation = createFromDegrees(value).rotation}
 
     /*
     * Rotation matrix operation to add two Rotation2ds

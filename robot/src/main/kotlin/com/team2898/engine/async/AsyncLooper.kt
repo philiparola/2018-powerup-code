@@ -9,40 +9,36 @@ import kotlinx.coroutines.experimental.*
 
 
 class AsyncLooper(var hz: Double, val logOnCantKeepUp: Boolean=true, val startStopTimeout: Double=1.0, val func: () -> Unit) {
-    var m_job: Job = init()
-    var m_targetHz = hz
+    var job: Job = init()
 
     private fun init(): Job {
-        return launch(context=CommonPool, start=CoroutineStart.LAZY) {
+        return goLazy {
             while (isActive) {
                 val startTime = Timer.getFPGATimestamp()
                 func()
                 val deltaTime = Timer.getFPGATimestamp() - startTime
-                if (deltaTime < 1000/hz) delay((1000/m_targetHz - deltaTime).toLong())
+                if (deltaTime < 1000/hz) delay((1000/hz - deltaTime).toLong())
                 else if (logOnCantKeepUp) logCantKeepUp (deltaTime)
             }
         }
     }
 
     fun start(): Job {
-        m_job = init()
+        job = init()
         return TimeBombAsync(startStopTimeout) {
-            m_job.start()
+            job.start()
         }.start()
     }
 
     fun stop(): Job {
         return TimeBombAsync(startStopTimeout) {
-            m_job.cancel()
-            m_job.join()
+            job.cancel()
+            job.join()
         }.start()
     }
 
     private fun logCantKeepUp(lastTime: Double) {
-        Logger.logInfo(reflectLocation(), LogLevel.WARNING, "AsyncLooper cannot keep up! Running at $m_targetHz hz and previous loop took ${lastTime*1000} ms")
+        Logger.logInfo(reflectLocation(), LogLevel.WARNING, "AsyncLooper cannot keep up! Running at $hz hz and previous loop took ${lastTime*1000} ms")
     }
 
-    fun setTargetHz(hz: Double) {
-        m_targetHz = hz
-    }
 }
