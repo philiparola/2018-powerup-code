@@ -24,8 +24,8 @@ abstract class Subsystem(val loopHz: Double, name: String) : ILooper, ISelfCheck
         onStop()
     }
 
-    abstract protected fun onStart()
-    abstract protected fun onLoop()
-    abstract protected fun onStop()
+    override abstract fun onStart()
+    abstract fun onLoop()
+    override abstract fun onStop()
 
 }

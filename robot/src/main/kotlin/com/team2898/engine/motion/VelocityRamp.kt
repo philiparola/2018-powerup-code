@@ -2,7 +2,7 @@ package com.team2898.engine.motion
 
 import edu.wpi.first.wpilibj.Timer
 
-class TrapezoidalRamp {
+class VelocityRamp {
     var accelRate: Double = 0.0
     var deaccelRate: Double = 0.0
 

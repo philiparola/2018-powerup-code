@@ -8,17 +8,18 @@ import java.io.StringWriter
  * @param throwable throwable to extract stack trace
  * @return formatted stack trace
  */
-fun getStackTrace(throwable: Throwable): String {
-    val sw = StringWriter()
-    val pw = PrintWriter(sw)
-    throwable.printStackTrace(pw)
-    return sw.toString()
-}
+val Throwable.stackTraceString: String
+    get() {
+        val sw = StringWriter()
+        val pw = PrintWriter(sw)
+        this.printStackTrace(pw)
+        return sw.toString()
+    }
 
 /** Generates stack trace
  * @return trace from current spot
  */
-fun getStackTrace(): String = getStackTrace(Throwable())
+fun getStackTraceString(): String = Throwable().stackTraceString
 
 data class InfoLog(val source: String, val level: LogLevel, val message: String) {
     override fun toString(): String {
@@ -37,4 +38,8 @@ fun reflectLocation(): String {
     return "$trace:${trace.lineNumber}"
 }
 
-class SelfCheckFailException(val reason: String, val level: LogLevel): Exception(reason)
+class SelfCheckFailException(val reason: String, val level: LogLevel) : Exception(reason)
+
+fun crashTrack(e: Exception) {
+    Logger.logInfo("Crash tracker", LogLevel.ERROR, e.stackTraceString)
+}

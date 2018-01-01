@@ -1,12 +1,15 @@
 package com.team2898.engine.kinematics
 
+import com.team2898.engine.math.kEpsilon
+import com.team2898.engine.math.linear.rotateVector2D
 import com.team2898.engine.types.Interpolable
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D
+import org.apache.commons.math3.linear.Array2DRowRealMatrix
+import org.apache.commons.math3.linear.RealMatrix
 
 // Represents 2D pose (position, orientation) on the x, y plane
 class RigidTransform2d : Interpolable<RigidTransform2d> {
     companion object {
-        val kEpsilon: Double = 1.0E-8
 
         fun fromTranslation(translation: Translation2d): RigidTransform2d {
             return RigidTransform2d(translation, Rotation2d())
@@ -22,25 +25,26 @@ class RigidTransform2d : Interpolable<RigidTransform2d> {
         fun fromDelta(twist: Twist2d): RigidTransform2d {
             val sinTheta: Double = Math.sin(twist.dtheta)
             val cosTheta: Double = Math.cos(twist.dtheta)
-            val s: Double
-            val c: Double
+            val sin: Double
+            val cos: Double
 
             if (Math.abs(twist.dtheta) < kEpsilon) {
-                s = 1.0 - (1.0 / 6.0) * Math.pow(twist.dtheta, 2.0)
-                c = 0.5 * twist.dtheta
+                sin = 1.0 - (1.0 / 6.0) * Math.pow(twist.dtheta, 2.0)
+                cos = 0.5 * twist.dtheta
             } else {
-                s = sinTheta / twist.dtheta
-                c = (1.0 - cosTheta) / twist.dtheta
+                sin = sinTheta / twist.dtheta
+                cos = (1.0 - cosTheta) / twist.dtheta
             }
+
+            val rotated = rotateVector2D(
+                    // yes, the rotation's sin and cos are flipped. This is intentional
+                    source = Vector2D(twist.dx, twist.dy), rotation = Vector2D(sin, cos)
+            )
+
             return RigidTransform2d(
-                    Translation2d(
-                            twist.dx * s - twist.dy * c,
-                            twist.dx * c + twist.dy * s
-                    ),
-                    Rotation2d(cosTheta, sinTheta)
+                    Translation2d(rotated.x, rotated.y), Rotation2d(cosTheta, sinTheta)
             )
         }
-
     }
 
 

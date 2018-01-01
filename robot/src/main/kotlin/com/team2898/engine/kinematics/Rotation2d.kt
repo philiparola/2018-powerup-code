@@ -2,6 +2,7 @@ package com.team2898.engine.kinematics
 
 import com.team2898.engine.extensions.Vector2D.atan2
 import com.team2898.engine.extensions.Vector2D.l2
+import com.team2898.engine.math.kEpsilon
 import com.team2898.engine.math.linear.rotateVector2D
 import com.team2898.engine.types.Interpolable
 
@@ -23,8 +24,6 @@ class Rotation2d : Interpolable<Rotation2d> {
     // represents as [cos(θ), sin(θ)]. default is 0° (pointing right)
     // for instance, 45° -> [cos(45°), sin(45°)] -> [(√2)/2, (√2)/2]
     var rotation: Vector2D = Vector2D(1.0, 0.0)
-
-    val kEpsilon = 1.0E-8 // "Accuracy," so to speak. We assume values smaller than this are negligible/zero
 
     constructor()
 

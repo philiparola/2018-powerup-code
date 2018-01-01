@@ -44,4 +44,3 @@ data class FrameSpeeds(
                 Pair(CANTalon.StatusFrameRate.AnalogTempVbat, analogTempVbatFrameHz)
                 )
 )
-

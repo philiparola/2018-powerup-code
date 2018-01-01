@@ -1,6 +1,7 @@
 package com.team2898.engine.extensions.Vector2D
 
 import com.team2898.engine.math.linear.rotateVector2D
+import com.team2898.engine.math.*
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D
 import java.util.*
 
@@ -29,3 +30,8 @@ val Vector2D.l2: Double
 
 val Vector2D.atan2: Double
     get() = Math.atan2(this.y, this.x)
+
+val Vector2D.avg: Double
+    get() = avg(this.x, this.y)
+val Vector2D.sum: Double
+    get() = sum(this.x, this.y)

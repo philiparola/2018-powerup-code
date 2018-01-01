@@ -17,5 +17,5 @@ fun rotateVector2D(source: Vector2D, rotation: Vector2D): Vector2D {
                     doubleArrayOf(normRot.y, normRot.x)
             )
     ).multiply(sourceMatrix)
-    return Vector2D(rotated.data[0][0], rotated.data[1][0]).normalize()
+    return Vector2D(rotated.getColumn(0)).normalize()
 }

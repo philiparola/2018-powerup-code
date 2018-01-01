@@ -119,6 +119,6 @@ object Logger {
 
     // fun logInfo(name: String, level: LogLevel, data: String) = log(LogLine(name, level, data))
     // fun logInfo(name: String, level: String, data: String) = logInfo(name, LogLevel.valueOf(level.toUpperCase()), data)
-    // fun logInfo(name: String, level: LogLevel, data: Throwable) = logInfo(name, level, getStackTrace(data))
-    // fun logInfo(name: String, level: String, data: Throwable) = logInfo(name, level, getStackTrace(data))
+    // fun logInfo(name: String, level: LogLevel, data: Throwable) = logInfo(name, level, getStackTraceString(data))
+    // fun logInfo(name: String, level: String, data: Throwable) = logInfo(name, level, getStackTraceString(data))
 }

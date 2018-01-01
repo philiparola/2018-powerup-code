@@ -16,10 +16,9 @@ import edu.wpi.first.wpilibj.DoubleSolenoid
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D
 import java.util.*
 
-object Drivetrain : Subsystem(50.0) {
+object Drivetrain : Subsystem(50.0, "Drivetrain") {
 
-    enum class ControlModes { OPEN_LOOP, BASE_LOCK, VELOCITY_DRIVE, MOTION_MAGIC }
-    enum class ControlSources { DIRECT_CONTROL, PURSUIT_CONTROL, ANGLE_LOCK_CONTROL }
+    enum class ControlModes { OPEN_LOOP, BASE_LOCK, VELOCITY_DRIVE}
 
     enum class GearModes(val value: DoubleSolenoid.Value) {
         HIGH(DoubleSolenoid.Value.kForward),
@@ -70,20 +69,12 @@ object Drivetrain : Subsystem(50.0) {
                             if (field == GearModes.HIGH) HIGH_GEAR_MAX_AMPS else LOW_GEAR_MAX_AMPS
                     )
                 }
-
-                leftSlave.setCurrentLimit(
-                        if (field == GearModes.HIGH) HIGH_GEAR_MAX_AMPS else LOW_GEAR_MAX_AMPS
-                )
-                rightSlave.setCurrentLimit(
-                        if (field == GearModes.HIGH) HIGH_GEAR_MAX_AMPS else LOW_GEAR_MAX_AMPS
-                )
             }
         }
 
     override fun onStart() {}
 
     override fun onLoop() {
-
         if (shifterSolenoid.get() != gearMode.value) {
             shifterSolenoid.set(gearMode.value)
             if (shifterSolenoid.get() == GearModes.HIGH.value)
@@ -121,9 +112,8 @@ object Drivetrain : Subsystem(50.0) {
             configEncoderCodesPerRev(4096)
 
 
-            //setPID(KP_HIGH, KI_HIGH, KD_HIGH, KF_HIGH, 0, HIGH_GEAR_RAMPRATE, 0)
-            setPID(KP_LOW, KI_LOW, KD_LOW, KF_LOW, 240, LOW_GEAR_RAMPRATE, 0)
-            setPID(KP_LOW, KI_LOW, KD_LOW, KF_LOW, 240, LOW_GEAR_RAMPRATE, 1)
+            setPID(KP_LOW, KI_LOW, KD_LOW, KF_LOW, IZONE, LOW_GEAR_RAMPRATE, 0)
+            setPID(KP_HIGH, KI_HIGH, KD_HIGH, KF_HIGH, 240, HIGH_GEAR_RAMPRATE, 1)
 
             // yay, blindly copying 254
             SetVelocityMeasurementPeriod(CANTalon.VelocityMeasurementPeriod.Period_10Ms)
@@ -132,14 +122,6 @@ object Drivetrain : Subsystem(50.0) {
             EnableCurrentLimit(false)
 
             setProfile(1)
-        }
-        leftMaster.apply {
-            motionMagicAcceleration = (1250.0 / 2.0) * LEFT_MM_STRAIGHT_ADJ_FACTOR
-            motionMagicCruiseVelocity = (1250.0) * LEFT_MM_STRAIGHT_ADJ_FACTOR
-        }
-        rightMaster.apply {
-            motionMagicAcceleration = 1250.0 / 2.0
-            motionMagicCruiseVelocity = 1250.0
         }
 
         driveStateMachine.apply {
@@ -152,30 +134,6 @@ object Drivetrain : Subsystem(50.0) {
             }
             registerTo(ControlModes.OPEN_LOOP) { masters { setOpenLoop() } }
             registerFrom(ControlModes.OPEN_LOOP) { openLoopPower = DriveSignal.BRAKE }
-
-            registerWhile(ControlModes.VELOCITY_DRIVE) {
-            }
-
-            registerTo(ControlModes.VELOCITY_DRIVE) {
-                masters { setVelocityControl() }
-            }
-
-            registerFrom(ControlModes.VELOCITY_DRIVE) { closedLoopVelTarget = DriveSignal.NEUTRAL }
-
-            registerTo(ControlModes.MOTION_MAGIC) {
-                masters { setMagicControl() }
-            }
-            registerWhile(ControlModes.MOTION_MAGIC) {
-                masters { setMagicControl() }
-                leftMaster.setMagicControl(motionMagicPositions.left)
-                rightMaster.setMagicControl(-motionMagicPositions.right)
-
-                println("Setting motion magic to ${motionMagicPositions.left}, ${motionMagicPositions.right}")
-                println("Speeds: ${encVel.x}, ${encVel.y}")
-                println("Positions: ${encPos.x}, ${encPos.y}")
-                println("Errors: ${leftMaster.closedLoopError}, ${rightMaster.closedLoopError}")
-            }
-
         }
 
         driveStateMachine.changeStateTo(controlMode)
@@ -193,11 +151,6 @@ object Drivetrain : Subsystem(50.0) {
 
     override fun selfTest(): Boolean {
         return false
-    }
-
-    fun getInchesToRotation(inches: Double): Double {
-        val wheel = 6 * Math.PI
-        return (inches / wheel) * 1 // previously * 4
     }
 }
 
