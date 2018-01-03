@@ -51,6 +51,17 @@ class RigidTransform2d : Interpolable<RigidTransform2d> {
     var translation: Translation2d = Translation2d()
     var rotation: Rotation2d = Rotation2d()
 
+    val x: Double
+        get() = translation.x
+    val y: Double
+        get() = translation.y
+    val cos: Double
+        get() = rotation.cos
+    val sin: Double
+        get() = rotation.sin
+    val theta: Double
+        get() = rotation.theta
+
     constructor()
 
     constructor(translation: Translation2d, rotation: Rotation2d) {

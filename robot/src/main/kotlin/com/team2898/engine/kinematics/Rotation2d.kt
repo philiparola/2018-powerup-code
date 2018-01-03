@@ -58,11 +58,21 @@ class Rotation2d : Interpolable<Rotation2d> {
 
     var radians: Double
         get() = rotation.atan2
-        set(value) {rotation = createFromRadians(value).rotation}
+        set(value) {
+            rotation = createFromRadians(value).rotation
+        }
 
     var degrees: Double
         get() = Math.toDegrees(radians)
-        set(value) {rotation = createFromDegrees(value).rotation}
+        set(value) {
+            rotation = createFromDegrees(value).rotation
+        }
+
+    var theta: Double
+        get() = radians
+        set(value) {
+            radians = value
+        }
 
     /*
     * Rotation matrix operation to add two Rotation2ds

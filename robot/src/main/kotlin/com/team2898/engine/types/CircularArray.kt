@@ -2,6 +2,7 @@ package com.team2898.engine.types
 
 /** This implements a simple circular array
  * Essentially it'll just delete the oldest entry whenever the array gets longer than its specified max size
+ * Index 0 is newest element, as index goes up elements get lower
  * DISCUSS {If performance is a concern, use a circular pointer instead of add/remove}
  * @param size size of circular array
  */
@@ -20,7 +21,7 @@ class CircularArray<T>(size: Int) {
      * @param value value to add
      */
     fun add(value: T) {
-        queue.add(value)
+        queue.add(0, value)
         prune()
     }
 
@@ -31,7 +32,7 @@ class CircularArray<T>(size: Int) {
 
     private fun prune() {
         while (queue.size > size) {
-            queue.removeAt(0)
+            queue.removeAt(size)
         }
     }
 
