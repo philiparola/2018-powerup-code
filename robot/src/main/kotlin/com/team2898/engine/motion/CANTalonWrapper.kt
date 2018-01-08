@@ -1,157 +1,119 @@
 package com.team2898.engine.motion
 
-import com.ctre.CANTalon
-import com.team2898.engine.async.AsyncLooper
-import com.team2898.engine.logging.DataLog
-import com.team2898.engine.logging.Logger
-import com.team2898.engine.logging.reflectLocation
-import com.team2898.engine.signalProcessing.MovingAverageFilter
+import com.ctre.phoenix.motorcontrol.*
+import com.ctre.phoenix.motorcontrol.can.TalonSRX
+import com.team2898.engine.logic.StateMachine
 import com.team2898.engine.types.MinMax
-import com.team2898.engine.util.clamp
-import com.team2898.robot.Robot
-import edu.wpi.first.wpilibj.Timer
-import jdk.net.SocketFlow
+import kotlin.math.roundToInt
 
-/** Custom CANTalon wrapper enabling databinding and easy motion profiles. Also can automatically optimize status frames.
- * @param deviceID CAN ID of the device
- * @param stateMachineHz Hz to run the internal state machine at. 10 is good for low priority subsystems, 100 for high
- * @param bufferPushHz Formality, 50 is good
- * @param generalFrameHz Minimum and maximum
- * @param framerateFilterSize The number of previous unique setpoint delays to average
- */
-class CANTalonWrapper(
+class TalonWrapper(
         deviceID: Int,
-        stateMachineHz: Double = 10.0,
-        bufferPushHz: Double = 50.0,
-        frameSpeeds: FrameSpeeds = FrameSpeeds(),
-        useAdaptiveFramerate: Boolean = true
-) : CANTalon(deviceID) {
+        val stateMachineHz: Double = 10.0,
+        val frameSpeed: MinMax = MinMax(min = 10.0, max = 100.0, norm = 10.0),
+        val frameSpeedHysteresisHz: Double = 5.0,
+        var useAdaptiveFramerate: Boolean = true
+) : TalonSRX(deviceID) {
 
     companion object {
-        fun createSlave(deviceID: Int, other: CANTalon): CANTalonWrapper {
-            return CANTalonWrapper(deviceID) slaveTo other
+        fun createSlave(deviceID: Int, other: TalonSRX): TalonWrapper {
+            //return TalonSRXWrapper(deviceID) slaveTo other
+            return TalonWrapper(1)
         }
     }
 
-    protected var frameSpeeds: MutableMap<StatusFrameRate, Double> = frameSpeeds.speedsMap
+    var lastPidProfile = -1
 
     init {
-        setFrameHz()
     }
 
-    var lastSetpointTimestamp = Double.NaN
-    val useAdaptiveFramerate: Boolean by lazy { useAdaptiveFramerate } // Quick hack so we can use this from set()
-
-    var lastSetpoint: Double = Double.NaN
-    var lastControlMode: TalonControlMode = controlMode ?: TalonControlMode.PercentVbus
-
-    val profileHelper = CANTalonProfileHelper(this, bufferPushHz)
-
-    var lastPIDProfile: Int = -1
-
-    var stateMachineLooper: AsyncLooper = AsyncLooper(stateMachineHz) {
-        // If we're using an adaptive framerate for the general status frames, set it to the average of how often our
-        // setpoints change
-        //if (useAdaptiveFramerate) {
-        //    var framerate = clamp(framerateFilter.getAverage(), 1 / generalFrameHz.min, 1 / generalFrameHz.max)
-        //    setStatusFrameRateMs(StatusFrameRate.General, (framerate * 1000).toInt())
-        //}
-
-    }
+    var lastSpeed = Double.NaN
+    var lastControlMode = controlMode ?: ControlMode.PercentOutput
 
     @Synchronized
-    override fun set(value: Double) {
-        if (lastSetpoint != value) {
-            super.set(value)
-            lastSetpoint = value
-
-            // Update moving average filter if we're doing the adaptive framerate thingy
-            //if (useAdaptiveFramerate) {
-            //    if (lastSetpointTimestamp == Double.NaN)
-            //        lastSetpointTimestamp = Timer.getFPGATimestamp()
-            //    framerateFilter.addValue(Timer.getFPGATimestamp() - lastSetpointTimestamp)
-            //    lastSetpointTimestamp = Timer.getFPGATimestamp()
-            //}
+    fun set(value: Double) {
+        if (lastSpeed != value) {
+            lastSpeed = value
+            super.set(lastControlMode, value)
         }
     }
 
     @Synchronized
-    override fun changeControlMode(controlMode: TalonControlMode) {
-        if (lastControlMode.value != controlMode.value) {
-            super.changeControlMode(controlMode)
-            lastControlMode = controlMode
+    fun changeControlMode(mode: ControlMode) {
+        if (mode != lastControlMode) {
+            lastControlMode = mode
+            super.set(mode, lastSpeed)
         }
     }
 
     @Synchronized
-    override fun setProfile(profile: Int) {
-        if (lastPIDProfile != profile) {
-            lastPIDProfile = profile
-            super.setProfile(profile)
-        }
-    }
-
     fun setOpenLoop(value: Double) {
         setOpenLoop()
         set(value)
     }
 
+    @Synchronized
     fun setVelocityControl(value: Double) {
         setVelocityControl()
         set(value)
     }
 
+    @Synchronized
     fun setPositionControl(value: Double) {
         setPositionControl()
         set(value)
     }
 
-    fun setMagicControl(value: Double) {
-        setMagicControl()
-        set(value)
-    }
 
-    fun setOpenLoop() = changeControlMode(TalonControlMode.PercentVbus)
-    fun setPositionControl() = changeControlMode(TalonControlMode.Position)
-    fun setVelocityControl() = changeControlMode(TalonControlMode.Speed)
-    fun setMagicControl() = changeControlMode(TalonControlMode.MotionMagic)
+    @Synchronized
+    fun setOpenLoop() = changeControlMode(ControlMode.PercentOutput)
+
+    @Synchronized
+    fun setPositionControl() = changeControlMode(ControlMode.Position)
+
+    @Synchronized
+    fun setVelocityControl() = changeControlMode(ControlMode.Velocity)
 
     @Synchronized
     fun setMagEncoder() {
-        setFeedbackDevice(FeedbackDevice.CtreMagEncoder_Relative)
-        configEncoderCodesPerRev(4096)
+        configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 0)
     }
 
-    fun setSlave(master: CANTalon): CANTalonWrapper {
-        changeControlMode(TalonControlMode.Follower)
-        super.set(master.deviceID.toDouble())
-        return this
+    @Synchronized
+    fun setSlave(master: TalonSRX) = apply {
+        changeControlMode(ControlMode.Follower)
+        set(master.deviceID.toDouble())
     }
 
-    infix fun slaveTo(master: CANTalon): CANTalonWrapper {
-        return setSlave(master)
-    }
+    @Synchronized
+    infix fun slaveTo(master: TalonSRX) = setSlave(master)
 
-
-    fun setFrameHz(
-            generalFrameHz: Double = frameSpeeds[StatusFrameRate.General] ?: 10.0,
-            feedbackFrameHz: Double = frameSpeeds[StatusFrameRate.Feedback] ?: 10.0,
-            quadFrameHz: Double = frameSpeeds[StatusFrameRate.QuadEncoder] ?: 10.0,
-            analogTempVbatFrameHz: Double = frameSpeeds[StatusFrameRate.AnalogTempVbat] ?: 10.0,
-            pulseWidthFrameHz: Double = frameSpeeds[StatusFrameRate.PulseWidth] ?: 10.0
-            ) {
-
-        frameSpeeds = FrameSpeeds(
-                generalFrameHz,
-                feedbackFrameHz,
-                quadFrameHz,
-                analogTempVbatFrameHz,
-                pulseWidthFrameHz
-        ).speedsMap.apply {
-            mapNotNull { entry ->
-                setStatusFrameRateMs(entry.key, (1000.0/entry.value).toInt())
-            }
+    @Synchronized
+    fun setControlFrameHz(map: Map<ControlFrame, Int>) {
+        useAdaptiveFramerate = false
+        map.forEach{
+            val frame = it.key
+            val periodMs = (1000.0 / it.value.toDouble()).roundToInt()
+            setControlFramePeriod(frame, periodMs)
         }
     }
 
+    @Synchronized
+    fun setFeedbackFrameHz(map: Map<StatusFrameEnhanced, Int>) {
+        useAdaptiveFramerate = false
+        map.forEach {
+            val frame = it.key
+            val periodMs = (1000.0 / it.value.toDouble()).roundToInt()
+            setStatusFramePeriod(frame, periodMs, 0)
+        }
+    }
+
+    @Synchronized
+    fun setPID(Kp: Double, Ki: Double, Kd: Double, Kf: Double=0.0, slot: Int=0, iZone: Int=0) {
+        config_IntegralZone(slot, iZone, 0)
+        config_kP(slot, Kp, 0)
+        config_kI(slot, Ki, 0)
+        config_kD(slot, Kd, 0)
+        config_kF(slot, Kf, 0)
+    }
 }
+

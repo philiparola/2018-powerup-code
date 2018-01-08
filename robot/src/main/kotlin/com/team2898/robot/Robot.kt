@@ -6,10 +6,12 @@ import com.team2898.engine.logging.reflectLocation
 import com.team2898.engine.logic.LoopManager
 import com.team2898.robot.commands.Teleop
 import edu.wpi.first.wpilibj.IterativeRobot
+import edu.wpi.first.wpilibj.networktables.NetworkTable as nt
 import edu.wpi.first.wpilibj.command.Scheduler
 import com.team2898.robot.subsystems.*
+import edu.wpi.first.wpilibj.TimedRobot
 
-class Robot : IterativeRobot() {
+class Robot : TimedRobot() {
     companion object {
         val debug = true
     }
@@ -17,6 +19,7 @@ class Robot : IterativeRobot() {
     val teleopCommand = Teleop()
     override fun robotInit() {
         //System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", "2")
+        nt.setUpdateRate(1/100.0) // 100Hz
     }
 
     override fun autonomousInit() {

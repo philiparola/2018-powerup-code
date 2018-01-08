@@ -1,55 +1,47 @@
 package com.team2898.robot.subsystems
 
-import com.ctre.CANTalon
-import com.team2898.engine.async.AsyncLooper
-import com.team2898.engine.kinematics.Translation2d
-import com.team2898.engine.logging.LogLevel
-import com.team2898.engine.logging.Logger
-import com.team2898.engine.logging.reflectLocation
+import com.ctre.phoenix.ErrorCode
+import com.ctre.phoenix.motorcontrol.NeutralMode
+import com.ctre.phoenix.motorcontrol.VelocityMeasPeriod
 import com.team2898.engine.logic.*
 import com.team2898.robot.config.RobotMap.*
 import com.team2898.engine.motion.DriveSignal
-import com.team2898.engine.motion.CANTalonWrapper
-import com.team2898.engine.types.MinMax
+import com.team2898.engine.motion.TalonWrapper
 import com.team2898.robot.config.DrivetrainConf.*
 import edu.wpi.first.wpilibj.DoubleSolenoid
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D
-import java.util.*
 
 object Drivetrain : Subsystem(50.0, "Drivetrain") {
 
-    enum class ControlModes { OPEN_LOOP, BASE_LOCK, VELOCITY_DRIVE}
+    enum class ControlModes { OPEN_LOOP, BASE_LOCK, VELOCITY_DRIVE }
 
-    enum class GearModes(val value: DoubleSolenoid.Value) {
-        HIGH(DoubleSolenoid.Value.kForward),
-        LOW(DoubleSolenoid.Value.kReverse)
-    }
-
-    val leftMaster = CANTalonWrapper(LEFT_MASTER_CANID)
-    val rightMaster = CANTalonWrapper(RIGHT_MASTER_CANID)
-    val leftSlave = CANTalonWrapper(LEFT_SLAVE_CANID)
-    val rightSlave = CANTalonWrapper(RIGHT_SLAVE_CANID)
+    val leftMaster = TalonWrapper(LEFT_MASTER_CANID)
+    val rightMaster = TalonWrapper(RIGHT_MASTER_CANID)
+    val leftSlave = TalonWrapper(LEFT_SLAVE_CANID)
+    val rightSlave = TalonWrapper(RIGHT_SLAVE_CANID)
     val masterList = listOf(leftMaster, rightMaster)
 
     val encVel
-        get() = Vector2D(leftMaster.encVelocity.toDouble(), rightMaster.encVelocity.toDouble())
+        get() = Vector2D(
+                leftMaster.sensorCollection.quadratureVelocity.toDouble(),
+                rightMaster.sensorCollection.quadratureVelocity.toDouble()
+        )
     val encPos
-        get() = Vector2D(leftMaster.encPosition.toDouble(), rightMaster.encPosition.toDouble())
+        get() = Vector2D(
+                leftMaster.sensorCollection.quadraturePosition.toDouble(),
+                rightMaster.sensorCollection.quadraturePosition.toDouble()
+        )
 
     override val enableTimes = listOf(GamePeriods.TELEOP, GamePeriods.AUTO)
 
-    val shifterSolenoid = DoubleSolenoid(DT_SOLENOID_FORWARD_ID, DT_SOLENOID_REVERSE_ID)
-
-    var baseLockPos = Pair(0.0, 0.0)
+    var baseLockPos = Vector2D(0.0, 0.0)
 
     // -1 to 1, vbat
     var openLoopPower = DriveSignal.BRAKE
     var closedLoopVelTarget = DriveSignal.NEUTRAL
-    var motionMagicPositions = DriveSignal.NEUTRAL
 
     // Manages control modes
     val driveStateMachine = StateMachine()
-
 
     var controlMode = ControlModes.OPEN_LOOP
         set(value: ControlModes) {
@@ -59,32 +51,10 @@ object Drivetrain : Subsystem(50.0, "Drivetrain") {
             }
         }
 
-    var gearMode = GearModes.HIGH
-        set(value) {
-            field = value
-            if (shifterSolenoid.get() != field.value) {
-                shifterSolenoid.set(field.value)
-                masters {
-                    setCurrentLimit(
-                            if (field == GearModes.HIGH) HIGH_GEAR_MAX_AMPS else LOW_GEAR_MAX_AMPS
-                    )
-                }
-            }
-        }
-
     override fun onStart() {}
 
-    override fun onLoop() {
-        if (shifterSolenoid.get() != gearMode.value) {
-            shifterSolenoid.set(gearMode.value)
-            if (shifterSolenoid.get() == GearModes.HIGH.value)
-                masters { setProfile(0) }
-            else
-                masters { setProfile(1) }
-        }
-
-        driveStateMachine.update()
-    }
+    override fun onLoop() =
+            driveStateMachine.update()
 
     override fun onStop() {}
 
@@ -93,35 +63,23 @@ object Drivetrain : Subsystem(50.0, "Drivetrain") {
         leftSlave slaveTo leftMaster
         rightSlave slaveTo rightMaster
 
-        leftSlave.enableBrakeMode(true)
-        rightSlave.enableBrakeMode(true)
-        leftMaster.enableBrakeMode(true)
-        rightMaster.enableBrakeMode(true)
-
-        leftMaster.reverseSensor(true)
-        rightMaster.reverseSensor(true)
-
-        masters { setVoltageRampRate(72.0) }
-
         // Set master characteristics
         masters {
-            closeLoopRampRate = 144.0
-            enableBrakeMode(true)
+            enableVoltageCompensation(true)
+            configVoltageCompSaturation(12.0, 0)
 
-            setFeedbackDevice(CANTalon.FeedbackDevice.CtreMagEncoder_Relative)
-            configEncoderCodesPerRev(4096)
+            setNeutralMode(NeutralMode.Coast)
 
+            setMagEncoder()
 
-            setPID(KP_LOW, KI_LOW, KD_LOW, KF_LOW, IZONE, LOW_GEAR_RAMPRATE, 0)
-            setPID(KP_HIGH, KI_HIGH, KD_HIGH, KF_HIGH, 240, HIGH_GEAR_RAMPRATE, 1)
+            configContinuousCurrentLimit(CONT_MAX_AMPS, 0)
+            configPeakCurrentLimit(PEAK_MAX_AMPS, 0)
+            configPeakCurrentDuration(PEAK_MAX_AMPS_DUR_MS, 0)
+            enableCurrentLimit(true)
 
-            // yay, blindly copying 254
-            SetVelocityMeasurementPeriod(CANTalon.VelocityMeasurementPeriod.Period_10Ms)
-            SetVelocityMeasurementWindow(32)
+            configVelocityMeasurementPeriod(VelocityMeasPeriod.Period_10Ms,0)
+            configVelocityMeasurementWindow(32, 0)
 
-            EnableCurrentLimit(false)
-
-            setProfile(1)
         }
 
         driveStateMachine.apply {
@@ -139,7 +97,7 @@ object Drivetrain : Subsystem(50.0, "Drivetrain") {
         driveStateMachine.changeStateTo(controlMode)
     }
 
-    fun masters(block: CANTalonWrapper.() -> Unit) {
+    fun masters(block: TalonWrapper.() -> Unit) {
         masterList.forEach { srx ->
             srx.block()
         }
