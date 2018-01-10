@@ -17,7 +17,7 @@ import org.apache.commons.math3.geometry.euclidean.twod.Vector2D
 import kotlin.math.roundToInt
 import kotlin.properties.Delegates
 
-object RobotState : ILooper {
+object RobotPose : ILooper {
     override val enableTimes = listOf(GamePeriods.TELEOP, GamePeriods.AUTO)
 
     val backlog = CircularArray<Timestamp<RigidTransform2d>>(POSE_BACKLOG_SIZE)
@@ -30,11 +30,11 @@ object RobotState : ILooper {
     var lastEncoderPosition: Vector2D = Vector2D(0.0, 0.0)
 
     override fun onStart() {
-        lastEncoderPosition = Drivetrain.encPos
+        lastEncoderPosition = Drivetrain.encPosIn
     }
 
     override val loop = AsyncLooper(100.0) {
-        val encoderPos = Drivetrain.encPos
+        val encoderPos = Drivetrain.encPosIn
         val deltaPos = encoderPos - lastEncoderPosition
         pose = integrateForwardKinematics(pose,
                 forwardKinematics(deltaPos)

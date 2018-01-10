@@ -1,6 +1,7 @@
 package com.team2898.engine.logging
 
 import com.team2898.engine.async.util.go
+import com.team2898.engine.async.util.goLazy
 import kotlinx.coroutines.experimental.*
 
 /**

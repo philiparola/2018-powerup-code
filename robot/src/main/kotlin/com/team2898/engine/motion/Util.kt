@@ -23,24 +23,4 @@ data class DriveSignal(val left: Double = 0.0, val right: Double = 0.0, val brak
  */
 data class TalonPoint(val position: Double, val velocity: Double, val duration: Double)
 
-/** Data transient object, allows for easy passing of framerate speeds into a CANTalonWrapper
- * @param generalFrameHz general frame hz
- * @param feedbackFrameHz closed loop feedback info frame hz
- * @param quadFrameHz quadrature encoder frame hz
- * @param analogTempVbatFrameHz temperature and vbat feedback frame hz
- * @param pulseWidthFrameHz pulse width position frame hz
- */
-data class FrameSpeeds(
-        val generalFrameHz: Double = 10.0,
-        val feedbackFrameHz: Double = 10.0,
-        val quadFrameHz: Double = 10.0,
-        val analogTempVbatFrameHz: Double = 10.0,
-        val pulseWidthFrameHz: Double = 10.0,
-        val speedsMap: MutableMap<CANTalon.StatusFrameRate, Double> = mutableMapOf(
-                Pair(CANTalon.StatusFrameRate.General, generalFrameHz),
-                Pair(CANTalon.StatusFrameRate.Feedback, feedbackFrameHz),
-                Pair(CANTalon.StatusFrameRate.QuadEncoder, quadFrameHz),
-                Pair(CANTalon.StatusFrameRate.PulseWidth, pulseWidthFrameHz),
-                Pair(CANTalon.StatusFrameRate.AnalogTempVbat, analogTempVbatFrameHz)
-                )
-)
+

@@ -2,10 +2,10 @@ package com.team2898.robot.config.DrivetrainConf
 
 import com.team2898.robot.subsystems.Drivetrain
 
-const val KP = 0.0
-const val KI = 0.0
-const val KD = 0.0
-const val KF = 0.0
+const val Kp = 0.0 // Constants for bunnybot
+const val Ki = 0.0
+const val Kd = 0.0
+const val Kf = 1023/9493.94
 
 const val CONT_MAX_AMPS = 30
 const val PEAK_MAX_AMPS = 50

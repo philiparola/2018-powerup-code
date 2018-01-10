@@ -21,15 +21,15 @@ object Drivetrain : Subsystem(50.0, "Drivetrain") {
     val rightSlave = TalonWrapper(RIGHT_SLAVE_CANID)
     val masterList = listOf(leftMaster, rightMaster)
 
-    val encVel
+    val encVelInSec
         get() = Vector2D(
-                leftMaster.sensorCollection.quadratureVelocity.toDouble(),
-                rightMaster.sensorCollection.quadratureVelocity.toDouble()
+                leftMaster.sensorCollection.quadratureVelocity.toDouble()*0.0057861, // 1 rot/sec is 41 enc units
+                rightMaster.sensorCollection.quadratureVelocity.toDouble()*0.0057861 // 6" wheels,
         )
-    val encPos
+    val encPosIn
         get() = Vector2D(
-                leftMaster.sensorCollection.quadraturePosition.toDouble(),
-                rightMaster.sensorCollection.quadraturePosition.toDouble()
+                leftMaster.sensorCollection.quadraturePosition.toDouble()/2.37101332,
+                rightMaster.sensorCollection.quadraturePosition.toDouble()/2.37101332
         )
 
     override val enableTimes = listOf(GamePeriods.TELEOP, GamePeriods.AUTO)

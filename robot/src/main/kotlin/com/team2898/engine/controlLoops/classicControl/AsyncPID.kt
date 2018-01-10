@@ -2,8 +2,9 @@ package com.team2898.engine.controlLoops
 
 import com.team2898.engine.async.AsyncLooper
 import com.team2898.engine.async.IAsyncLoop
-import com.team2898.engine.extensions.drivetrain.blockJoin
+import com.team2898.engine.extensions.blockJoin
 import edu.wpi.first.wpilibj.Timer
+import kotlinx.coroutines.experimental.async
 
 /* import edu.wpi.first.wpilibj.util.BoundaryException */
 
@@ -33,24 +34,28 @@ class AsyncPID(
         @Synchronized get
         @Synchronized set
 
-    var useControllerOutput: (Double) -> Unit = { throw NotImplementedError("Warning: useControllerOutput (Double) -> Unit not implemented") }
+    var useControllerOutput: (Double) -> Unit = {
+        throw NotImplementedError("Warning: useControllerOutput (Double) -> Unit not implemented")
+    }
         @Synchronized set
         @Synchronized get
 
-    var m_asyncLooper: AsyncLooper = AsyncLooper(execHz) {
+    var asyncLooper: AsyncLooper = AsyncLooper(execHz) {
         sensorValue = getSensorInput()
         sensorOutput = update(sensorOutput, currentTime = Timer.getFPGATimestamp())
+        useControllerOutput(sensorOutput)
     }
 
-    override fun getLoop(): AsyncLooper = m_asyncLooper
+    override fun getLoop(): AsyncLooper = asyncLooper
 
     @Synchronized
-    override fun start() = m_asyncLooper.start().blockJoin()
+    override fun start() = asyncLooper.start().blockJoin()
 
     @Synchronized
-    override fun stop() = m_asyncLooper.stop().blockJoin()
+    override fun stop() = asyncLooper.stop().blockJoin()
 
-    @Synchronized
-    override fun setTargetHz(hz: Double) = m_asyncLooper.setTargetHz(hz)
 
+    override fun setTargetHz(hz: Double) {
+        asyncLooper.hz = hz
+    }
 }

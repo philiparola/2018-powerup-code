@@ -35,3 +35,6 @@ val Vector2D.avg: Double
     get() = avg(this.x, this.y)
 val Vector2D.sum: Double
     get() = sum(this.x, this.y)
+
+operator fun Vector2D.get(index: Int) =
+        if (index == 0) x else y

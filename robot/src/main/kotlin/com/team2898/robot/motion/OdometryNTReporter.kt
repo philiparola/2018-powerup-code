@@ -10,10 +10,10 @@ object OdometryNTReporter {
     // need to send off a Twist and Pose
     @Synchronized
     fun updateNavMsgs() {
-        val currentPose = RobotState.pose
+        val currentPose = RobotPose.pose
 
-        val r0 = RobotState[0]
-        val r1 = RobotState[1]
+        val r0 = RobotPose[0]
+        val r1 = RobotPose[1]
 
         // Compute twist --- linear (delta position: vector3) and angular (delta rotation: vector3)
         val deltaPosition = SerializableVector3(
@@ -41,8 +41,8 @@ object OdometryNTReporter {
         val serializedTwist = JSON.stringify(twist)
         val serializedPose = JSON.stringify(pose)
 
-        NTHandler.navTable.putString("twist", serializedTwist)
-        NTHandler.navTable.putString("pose", serializedPose)
+        //NTHandler.navTable.putString("twist", serializedTwist)
+        //NTHandler.navTable.putString("pose", serializedPose)
     }
 
 }

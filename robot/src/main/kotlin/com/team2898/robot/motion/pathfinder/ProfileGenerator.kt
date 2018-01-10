@@ -12,10 +12,6 @@ import kotlinx.coroutines.experimental.async
 import java.util.concurrent.Future
 
 object ProfileGenerator {
-    val profile = baselineProfile
-
-    val generatedProfile: Deferred<Pair<Trajectory, Trajectory>>
-
     val hz = 100
     val maxVel = 2.0 // m/s
     val maxAcc = 2.0 // m/s^2
@@ -26,24 +22,16 @@ object ProfileGenerator {
     val config = Trajectory.Config(
             Trajectory.FitMethod.HERMITE_CUBIC,
             Trajectory.Config.SAMPLES_HIGH,
-            1.0 / hz,
-            maxVel,
-            maxAcc,
-            maxJerk
-    )
+            1.0 / hz, maxVel, maxAcc, maxJerk)
 
+    fun deferProfile(profile: List<Triple<Double, Double, Double>>): Deferred<Pair<Trajectory, Trajectory>> = async(ComputePool) {
+        val waypoints = profile.map { it ->
+            Waypoint(it.first, it.second, Pathfinder.d2r(it.third))
+        }.toTypedArray()
 
-    init {
-        generatedProfile = async(ComputePool) {
-            val waypoints = profile.map { it ->
-                Waypoint(it.first, it.second, Pathfinder.d2r(it.third))
-            }.toTypedArray()
+        val trajectory = Pathfinder.generate(waypoints, config)
+        val modifier = TankModifier(trajectory).modify(wheelbaseWidth)
 
-            val trajectory = Pathfinder.generate(waypoints, config)
-
-            val modifier = TankModifier(trajectory).modify(wheelbaseWidth)
-
-            Pair<Trajectory, Trajectory>(modifier.leftTrajectory, modifier.rightTrajectory)
-        }
+        Pair<Trajectory, Trajectory>(modifier.leftTrajectory, modifier.rightTrajectory)
     }
 }

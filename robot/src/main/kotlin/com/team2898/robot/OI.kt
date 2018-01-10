@@ -34,7 +34,7 @@ object OI {
     val throttle
         get() = process(driverController.getRawAxis(1), square = true)
     val turn
-        get() = process(driverController.getRawAxis(4), square = Drivetrain.gearMode == Drivetrain.GearModes.HIGH)
+        get() = process(driverController.getRawAxis(4), square = true)
     val quickTurn: Boolean
         get() = process(Math.max(driverController.getRawAxis(2), driverController.getRawAxis(3))) != 0.0
     val leftTrigger
