@@ -38,9 +38,9 @@ object OI {
     val quickTurn: Boolean
         get() = process(Math.max(driverController.getRawAxis(2), driverController.getRawAxis(3))) != 0.0
     val leftTrigger
-        get() = process(driverController.getRawAxis(2), square = true)
+        get() = process(driverController.getRawAxis(2) * 0.8, square = true)
     val rightTrigger
-        get() = process(driverController.getRawAxis(3), square = true)
+        get() = process(driverController.getRawAxis(3) * 0.8, square = true)
     val brake
         get() = driverController.getRawButton(8) || driverController.getRawButton(9)
     val lowGear

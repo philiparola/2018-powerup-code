@@ -9,6 +9,7 @@ object LoopManager {
 
     @Synchronized
     fun register(loop: ILooper) {
+        Logger.logInfo(reflectLocation(), LogLevel.DEBUG, "Registering loop $loop")
         loops.add(loop)
     }
 

@@ -25,19 +25,24 @@ class ProfileExecutor(val profile: Deferred<Pair<Trajectory, Trajectory>>) {
     private var logEvery = RunEvery(10)
 
     fun execute(motorCommand: (Double, Double) -> Unit) {
+        println(reflectLocation())
         job = go {
+            println(reflectLocation())
             started = true
             if (!profile.isCompleted) {
                 Logger.logInfo(reflectLocation(), LogLevel.WARNING, "Profile not done generating! Waiting until completion to execute")
             }
             profile.await()
 
+            println(reflectLocation())
 
             val completedProfile = profile.getCompleted()
+            println(completedProfile)
 
             if (completedProfile.first.segments.size != completedProfile.second.segments.size)
                 Logger.logInfo(reflectLocation(), LogLevel.WARNING, "Left and right trajectories different lengths!")
 
+            println(reflectLocation())
 
             val leftController = PVAPID(
                     ProfileKp,
@@ -45,8 +50,8 @@ class ProfileExecutor(val profile: Deferred<Pair<Trajectory, Trajectory>>) {
                     ProfileKvp,
                     ProfileKvf,
                     ProfileKaf,
-                    -14.0,
-                    14.0
+                    -12.0,
+                    12.0
             )
             val rightController = PVAPID(
                     ProfileKp,
@@ -54,8 +59,8 @@ class ProfileExecutor(val profile: Deferred<Pair<Trajectory, Trajectory>>) {
                     ProfileKvp,
                     ProfileKvf,
                     ProfileKaf,
-                    -14.0,
-                    14.0
+                    -12.0,
+                    12.0
             )
 
             for (i in 0..completedProfile.first.segments.size) {
@@ -76,7 +81,7 @@ class ProfileExecutor(val profile: Deferred<Pair<Trajectory, Trajectory>>) {
                         dt = rightSegment.dt)
 
 
-                Drivetrain.closedLoopVelTarget = DriveSignal(left, right)
+                motorCommand(left, right)
 
                 if (logEvery.shouldRun()) {
                     Logger.logData("profile executor", "left reported pos", Drivetrain.encPosIn[0])

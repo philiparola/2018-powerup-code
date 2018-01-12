@@ -11,7 +11,7 @@ import java.util.*
 
 fun Vector2D.rotate(other: Vector2D): Vector2D = rotateVector2D(this, other)
 
-operator fun Vector2D.minus(other: Vector2D): Vector2D = minus(other)
+operator fun Vector2D.minus(other: Vector2D): Vector2D = Vector2D(this.x - other.x, this.y - other.y)
 
 operator fun Vector2D.plus(other: Vector2D): Vector2D = add(other)
 

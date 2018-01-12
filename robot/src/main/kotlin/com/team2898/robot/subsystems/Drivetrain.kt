@@ -23,13 +23,13 @@ object Drivetrain : Subsystem(50.0, "Drivetrain") {
 
     val encVelInSec
         get() = Vector2D(
-                leftMaster.sensorCollection.quadratureVelocity.toDouble()*0.0057861, // 1 rot/sec is 41 enc units
-                rightMaster.sensorCollection.quadratureVelocity.toDouble()*0.0057861 // 6" wheels,
+                leftMaster.sensorCollection.quadratureVelocity.toDouble() * 0.0057861, // 1 rot/sec is 41 enc units
+                rightMaster.sensorCollection.quadratureVelocity.toDouble() * 0.0057861 // 6" wheels,
         )
     val encPosIn
         get() = Vector2D(
-                leftMaster.sensorCollection.quadraturePosition.toDouble()/2.37101332,
-                rightMaster.sensorCollection.quadraturePosition.toDouble()/2.37101332
+                leftMaster.sensorCollection.quadraturePosition.toDouble() / 2.37101332,
+                rightMaster.sensorCollection.quadraturePosition.toDouble() / 2.37101332
         )
 
     override val enableTimes = listOf(GamePeriods.TELEOP, GamePeriods.AUTO)
@@ -77,20 +77,22 @@ object Drivetrain : Subsystem(50.0, "Drivetrain") {
             configPeakCurrentDuration(PEAK_MAX_AMPS_DUR_MS, 0)
             enableCurrentLimit(true)
 
-            configVelocityMeasurementPeriod(VelocityMeasPeriod.Period_10Ms,0)
+            configVelocityMeasurementPeriod(VelocityMeasPeriod.Period_10Ms, 0)
             configVelocityMeasurementWindow(32, 0)
 
+            setPID(Kp, Ki, Kd, Kf)
         }
 
         driveStateMachine.apply {
             registerWhile(ControlModes.OPEN_LOOP) {
                 masters {
-                    //enableBrakeMode(openLoopPower.brake)
                 }
                 leftMaster.setOpenLoop(openLoopPower.left)
                 rightMaster.setOpenLoop(-openLoopPower.right)
             }
-            registerTo(ControlModes.OPEN_LOOP) { masters { setOpenLoop() } }
+            registerTo(ControlModes.OPEN_LOOP) {
+                masters { setOpenLoop() }
+            }
             registerFrom(ControlModes.OPEN_LOOP) { openLoopPower = DriveSignal.BRAKE }
         }
 

@@ -3,6 +3,9 @@ package com.team2898.robot.motion
 import com.team2898.engine.async.AsyncLooper
 import com.team2898.engine.extensions.Vector2D.minus
 import com.team2898.engine.kinematics.RigidTransform2d
+import com.team2898.engine.kinematics.Rotation2d
+import com.team2898.engine.kinematics.Translation2d
+import com.team2898.engine.logging.Logger
 import com.team2898.engine.logic.GamePeriods
 import com.team2898.engine.logic.ILooper
 import com.team2898.engine.logic.RunEvery
@@ -22,9 +25,15 @@ object RobotPose : ILooper {
 
     val backlog = CircularArray<Timestamp<RigidTransform2d>>(POSE_BACKLOG_SIZE)
     val runEvery = RunEvery(RUN_EVERY_NUMBER)
-
     var pose: RigidTransform2d by Delegates.observable(RigidTransform2d()) { prop, old, new ->
         OdometryNTReporter.updateNavMsgs()
+    }
+
+    init {
+        backlog.add(Timestamp<RigidTransform2d>(stamp=RigidTransform2d(Translation2d(), Rotation2d())))
+        backlog.add(Timestamp<RigidTransform2d>(stamp=RigidTransform2d(Translation2d(), Rotation2d())))
+        backlog.add(Timestamp<RigidTransform2d>(stamp=RigidTransform2d(Translation2d(), Rotation2d())))
+        println("Pose backlog size is $POSE_BACKLOG_SIZE")
     }
 
     var lastEncoderPosition: Vector2D = Vector2D(0.0, 0.0)
@@ -34,6 +43,7 @@ object RobotPose : ILooper {
     }
 
     override val loop = AsyncLooper(100.0) {
+//        println("Odometry loop ran! Latest entry is ${backlog[0]}")
         val encoderPos = Drivetrain.encPosIn
         val deltaPos = encoderPos - lastEncoderPosition
         pose = integrateForwardKinematics(pose,
@@ -48,5 +58,4 @@ object RobotPose : ILooper {
 
     operator fun get(index: Int) =
             backlog[index].stamp
-
 }

@@ -31,10 +31,15 @@ class MotionProfileTest : Command() {
     }
 
     override fun start() {
-        Drivetrain.controlMode = Drivetrain.ControlModes.VELOCITY_DRIVE
+        Logger.logInfo(reflectLocation(), LogLevel.INFO, "Running motion profile")
+        Drivetrain.controlMode = Drivetrain.ControlModes.OPEN_LOOP
         executer.execute { left, right ->
-            Drivetrain.closedLoopVelTarget = DriveSignal(left, right)
+            Drivetrain.openLoopPower = DriveSignal(left, right)
         }
+    }
+
+    override fun end() {
+        Logger.logInfo(reflectLocation(), LogLevel.INFO, "Ending motion profile")
     }
 
     override fun isFinished(): Boolean =

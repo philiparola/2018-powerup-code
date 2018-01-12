@@ -6,7 +6,6 @@ import jaci.pathfinder.Pathfinder
 import jaci.pathfinder.Trajectory
 import jaci.pathfinder.Waypoint
 import jaci.pathfinder.modifiers.TankModifier
-import kotlinx.coroutines.experimental.CompletableDeferred
 import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.async
 import java.util.concurrent.Future

@@ -4,7 +4,7 @@ import com.team2898.engine.async.AsyncLooper
 import com.team2898.engine.comms.SerializableTypes.*
 import com.team2898.engine.math.quaternionFromEuler
 import com.team2898.robot.NTHandler
-import kotlinx.serialization.json.JSON
+//import kotlinx.serialization.json.JSON
 
 object OdometryNTReporter {
     // need to send off a Twist and Pose
@@ -38,8 +38,8 @@ object OdometryNTReporter {
         val pose = SerializablePose(position = position, orientation = orientation)
 
 
-        val serializedTwist = JSON.stringify(twist)
-        val serializedPose = JSON.stringify(pose)
+        //val serializedTwist = JSON.stringify(twist)
+        //val serializedPose = JSON.stringify(pose)
 
         //NTHandler.navTable.putString("twist", serializedTwist)
         //NTHandler.navTable.putString("pose", serializedPose)
