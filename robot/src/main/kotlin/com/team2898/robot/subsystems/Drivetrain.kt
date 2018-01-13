@@ -75,7 +75,7 @@ object Drivetrain : Subsystem(50.0, "Drivetrain") {
             configContinuousCurrentLimit(CONT_MAX_AMPS, 0)
             configPeakCurrentLimit(PEAK_MAX_AMPS, 0)
             configPeakCurrentDuration(PEAK_MAX_AMPS_DUR_MS, 0)
-            enableCurrentLimit(true)
+            enableCurrentLimit(CURRENT_LIMIT)
 
             configVelocityMeasurementPeriod(VelocityMeasPeriod.Period_10Ms, 0)
             configVelocityMeasurementWindow(32, 0)
