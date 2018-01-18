@@ -37,7 +37,9 @@ class ProfileExecutor(val profile: Deferred<Pair<Trajectory, Trajectory>>) {
             profile.await()
 
             println("ProfileExecutor @execute() line 38")
-
+        Drivetrain.masters {
+            sensorCollection.setQuadraturePosition(0, 0)
+        }
             val completedProfile = profile.getCompleted()
 
             if (completedProfile.first.segments.size != completedProfile.second.segments.size)
@@ -100,10 +102,10 @@ class ProfileExecutor(val profile: Deferred<Pair<Trajectory, Trajectory>>) {
 //                    Logger.logData("profile executor", "right target vel", rightSegment.velocity)
 //                    Logger.logData("profile executor", "right target acc", rightSegment.acceleration)
 
-                    Logger.logInfo("profile executor", LogLevel.INFO, "left Drivetrain enc PosIn ${Drivetrain.encPosIn[0]}")
-                    Logger.logInfo("profile executor", LogLevel.INFO, "left Drivetrain enc inSec ${Drivetrain.encVelInSec[0]}")
-                    Logger.logInfo("profile executor", LogLevel.INFO,"right Drivetrain enc PosIn ${Drivetrain.encPosIn[1]}")
-                    Logger.logInfo("profile executor", LogLevel.INFO,"right Driveteain enc insec ${Drivetrain.encVelInSec[1]}")
+                    Logger.logInfo("profile executor", LogLevel.INFO, "left Drivetrain enc Pos ${Drivetrain.encPosIn[0]}")
+                    Logger.logInfo("profile executor", LogLevel.INFO, "left Drivetrain enc vel ${Drivetrain.encVelInSec[0]}")
+                    Logger.logInfo("profile executor", LogLevel.INFO,"right Drivetrain enc Pos ${Drivetrain.encPosIn[1]}")
+                    Logger.logInfo("profile executor", LogLevel.INFO,"right Driveteain enc vel ${Drivetrain.encVelInSec[1]}")
 
                     Logger.logInfo("profile executor", LogLevel.INFO,"left segment pos ${leftSegment.position}")
                     Logger.logInfo("profile executor", LogLevel.INFO,"left segment vel ${ leftSegment.velocity}")

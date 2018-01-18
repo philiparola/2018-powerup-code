@@ -23,13 +23,24 @@ object Drivetrain : Subsystem(50.0, "Drivetrain") {
 
     val encVelInSec
         get() = Vector2D(
-                leftMaster.sensorCollection.quadratureVelocity.toDouble() * 0.0057861, // 1 rot/sec is 41 enc units
-                rightMaster.sensorCollection.quadratureVelocity.toDouble() * 0.0057861 // 6" wheels,
+                (leftMaster.sensorCollection.quadratureVelocity.toDouble()/409)*6*Math.PI, // 1 rot/sec is 41 enc units
+                (rightMaster.sensorCollection.quadratureVelocity.toDouble()/409)*6*Math.PI // 6" wheels,
         )
     val encPosIn
         get() = Vector2D(
-                leftMaster.sensorCollection.quadraturePosition.toDouble() / 2.37101332,
-                rightMaster.sensorCollection.quadraturePosition.toDouble() / 2.37101332
+                ((leftMaster.sensorCollection.quadraturePosition.toDouble()) / 4096) * 6 * Math.PI,
+                ((rightMaster.sensorCollection.quadraturePosition.toDouble()) / 4096) * 6 * Math.PI
+        )
+
+    val encVelRaw
+        get() = Vector2D(
+                leftMaster.sensorCollection.quadratureVelocity.toDouble(),
+                rightMaster.sensorCollection.quadratureVelocity.toDouble()
+        )
+    val encPosRaw
+        get() = Vector2D(
+                leftMaster.sensorCollection.quadraturePosition.toDouble(),
+                rightMaster.sensorCollection.quadraturePosition.toDouble()
         )
 
     override val enableTimes = listOf(GamePeriods.TELEOP, GamePeriods.AUTO)

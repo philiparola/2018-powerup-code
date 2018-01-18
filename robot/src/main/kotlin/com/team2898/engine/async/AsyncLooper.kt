@@ -1,13 +1,11 @@
 package com.team2898.engine.async
 
-import com.team2898.engine.async.util.goLazy
 import com.team2898.engine.logging.LogLevel
 import com.team2898.engine.logging.Logger
 import com.team2898.engine.logging.TimeBombAsync
 import com.team2898.engine.logging.reflectLocation
 import edu.wpi.first.wpilibj.Timer
 import kotlinx.coroutines.experimental.*
-
 
 class AsyncLooper(
         var hz: Double,

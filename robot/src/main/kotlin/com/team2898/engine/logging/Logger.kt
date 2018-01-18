@@ -34,7 +34,7 @@ object Logger {
         infoLogFileRef.writeText("")
         dataLogFileRef.writeText("")
         flushBuffers()
-        SmartDashboard.putString("Session UUID", uuid.toString())
+        SmartDashboard.putString("Session UUID", uuid)
     }
 
     @Synchronized

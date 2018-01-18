@@ -6,6 +6,6 @@ const val Kd = 0.0
 const val Kf = 1023/9493.94
 
 const val CURRENT_LIMIT = true
-const val CONT_MAX_AMPS = 25
-const val PEAK_MAX_AMPS = 45
+const val CONT_MAX_AMPS = 10
+const val PEAK_MAX_AMPS = 25
 const val PEAK_MAX_AMPS_DUR_MS = 500
