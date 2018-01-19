@@ -45,8 +45,8 @@ class MotionProfileTest : Command() {
 
         val path = arrayOf(
                 Waypoint(0.0, 0.0, d2r(0.0)),
-                Waypoint(5.0, 5.0, d2r(45.0)),
-                Waypoint(10.0, 5.0, d2r(0.0))
+                Waypoint(2.0, 2.0, d2r(45.0)),
+                Waypoint(4.0, 2.0, d2r(0.0))
         )
 
         val config = Trajectory.Config(Trajectory.FitMethod.HERMITE_CUBIC, SAMPLES_HIGH,
@@ -63,15 +63,15 @@ class MotionProfileTest : Command() {
         rightCntl = EncoderFollower(modified.rightTrajectory)
         val encFollowers = listOf(leftCntl, rightCntl)
 
-        val nothing: Nothing
-
         Drivetrain.masters {
             sensorCollection.setQuadraturePosition(0, 0)
         }
+
+
         encFollowers.forEach {
             it.apply {
                 configureEncoder(0, 4096, 0.1524)
-                configurePIDVA(0.0, 0.0, 0.0, 1 / 5.849112, 0.0)
+                configurePIDVA(0.0, 0.0, 0.0, 1 / 3.0, 0.0)
             }
         }
 
@@ -98,26 +98,38 @@ class MotionProfileTest : Command() {
         }
         File("/home/lvuser/pathfinder.csv").writeText(sb.toString())
     }
-
+    val sb = StringBuilder().append("time, left vel, right vel\n")
+    var time = 0
     override fun execute() {
+        if (isFinished()) return
         val l = leftCntl.calculate(Drivetrain.encPosRaw[0].toInt())
         val r = rightCntl.calculate(Drivetrain.encPosRaw[1].toInt())
-        leftCntl.segment.apply {
-            val sb = StringBuilder()
-            sb.append(", ${this.x}", ", ${this.y}", ", ${this.velocity}", ", ${this.acceleration}")
-            println("Left segment: ${sb.toString()}")
-        }
-        rightCntl.segment.apply {
-            val sb = StringBuilder()
-            sb.append(", ${this.x}", ", ${this.y}", ", ${this.velocity}", ", ${this.acceleration}")
-            println("Right segment: ${sb.toString()}")
-        }
-
+//        leftCntl.segment.apply {
+//            val sb = StringBuilder()
+//            sb.append(", ${this.x}", ", ${this.y}", ", ${this.velocity}", ", ${this.acceleration}")
+//            println("Left segment: ${sb.toString()}")
+//        }
+//
+//        rightCntl.segment.apply {
+//            val sb = StringBuilder()
+//            sb.append(", ${this.x}", ", ${this.y}", ", ${this.velocity}", ", ${this.acceleration}")
+//            println("Right segment: ${sb.toString()}")
+//        }
         Drivetrain.openLoopPower = DriveSignal(l, r)
         println("${Drivetrain.openLoopPower}")
+        print("left enc vel raw = ${Drivetrain.encVelRaw[0]} ")
+        println("right enc vel raw = ${Drivetrain.encVelRaw[1]}")
+        println("left enc vel m/s = ${Drivetrain.encVelRaw[0] * 0.04601806640625 * 0.0254}")
+        println("right enc vel m/s = ${Drivetrain.encVelRaw[1] * 0.04601806640625 * 0.0254}")
+        sb.append("$time" +
+                ", ${Drivetrain.encVelRaw[0] * 0.04601806640625 * 0.0254 * -1}" +
+                ", ${Drivetrain.encVelRaw[1] * 0.04601806640625 * 0.0254}" +
+                "\n")
+        time ++
     }
 
     override fun end() {
+        File("/home/lvuser/motorVel.csv").writeText(sb.toString())
         println("ending mp")
     }
 
