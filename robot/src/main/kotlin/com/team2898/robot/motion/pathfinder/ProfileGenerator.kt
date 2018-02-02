@@ -1,39 +1,54 @@
 package com.team2898.robot.motion.pathfinder
 
+import com.beust.klaxon.convert
 import com.team2898.engine.async.pools.ComputePool
 import com.team2898.engine.async.util.go
+import com.team2898.robot.config.MotionProfileConfig.FILE_EXTENSION
+import com.team2898.robot.config.MotionProfileConfig.FILE_PATH
 import jaci.pathfinder.Pathfinder
 import jaci.pathfinder.Trajectory
 import jaci.pathfinder.Waypoint
 import jaci.pathfinder.modifiers.TankModifier
 import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.async
+import kotlinx.serialization.json.JSON
+import sun.security.provider.MD5
 import java.io.File
+import java.math.BigInteger
+import java.nio.file.Path
+import java.util.*
 import java.util.concurrent.Future
+import kotlin.experimental.and
 
 object ProfileGenerator {
-    val hz = 100
-    val maxVel = 4.2672 // mt/s
+    fun deferProfile(profile: ProfileSettings): Deferred<Pair<Trajectory, Trajectory>> = async(ComputePool) {
+        val mprofile: Trajectory
+        val serialized = JSON().stringify(profile)
+        val mdEnc = java.security.MessageDigest.getInstance("MD5")
+        // Encryption algorithmy
+        val md5Base16 = BigInteger(1, mdEnc.digest(serialized.toByteArray()))     // calculate md5 hash
+        val sum = Base64.getEncoder().encodeToString(md5Base16.toByteArray()).trim()     // convert from base16 to base64 and remove the new line character
+        val file =File("$FILE_PATH/$sum.$FILE_EXTENSION")
 
-//    val maxAcc = 168.0 * 2 // in/s^2
-    val maxAcc = 4.2672 / 2 // m/s^2
-    val maxJerk = 7.62 // m/s^3
 
-    val wheelbaseWidth = 0.5588 // m
-
-    val config = Trajectory.Config(
-            Trajectory.FitMethod.HERMITE_CUBIC,
-            Trajectory.Config.SAMPLES_HIGH,
-            1.0 / hz, maxVel, maxAcc, maxJerk)
-
-    fun deferProfile(profile: List<Triple<Double, Double, Double>>): Deferred<Pair<Trajectory, Trajectory>> = async(ComputePool) {
-        val waypoints: Array<Waypoint> = profile.map { it ->
-            Waypoint(it.first, it.second, Pathfinder.d2r(it.third))
-        }.toTypedArray()
-
-        val trajectory = Pathfinder.generate(waypoints, config)
-        val modifier = TankModifier(trajectory).modify(wheelbaseWidth)
+        if (file.exists()) { // if the file exists
+            mprofile = Pathfinder.readFromCSV(file)
+        } else { // if not
+            val path = tripleToWaypoint(profile.wayPoints)
+            val config = Trajectory.Config(
+                    profile.fitMethod,
+                    profile.sampleRate,
+                    1.0 / profile.hz,
+                    profile.maxVel,
+                    profile.maxAcc,
+                    profile.maxJerk
+            )
+            mprofile = Pathfinder.generate(path, config)
+            Pathfinder.writeToCSV(file, mprofile)
+        }
+        val modifier = TankModifier(mprofile).modify(profile.wheelbaseWidth)
 
         Pair<Trajectory, Trajectory>(modifier.leftTrajectory, modifier.rightTrajectory)
     }
+
 }

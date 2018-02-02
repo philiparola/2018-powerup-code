@@ -1,18 +1,8 @@
 package com.team2898.robot.commands
 
-import com.ctre.phoenix.motorcontrol.SensorCollection
-import com.team2898.engine.async.AsyncLooper
-import com.team2898.engine.async.util.go
 import com.team2898.engine.extensions.Vector2D.get
-import com.team2898.engine.logging.LogLevel
-import com.team2898.engine.logging.Logger
-import com.team2898.engine.logging.reflectLocation
 import com.team2898.engine.motion.DriveSignal
-import com.team2898.robot.motion.pathfinder.ProfileExecutor
-import com.team2898.robot.motion.pathfinder.ProfileGenerator
-import com.team2898.robot.motion.pathfinder.baselineProfile
 import com.team2898.robot.subsystems.Drivetrain
-import edu.wpi.first.wpilibj.RobotBase
 import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj.command.Command
 import jaci.pathfinder.Pathfinder
@@ -21,11 +11,7 @@ import jaci.pathfinder.Trajectory.Config.SAMPLES_HIGH
 import jaci.pathfinder.Waypoint
 import jaci.pathfinder.followers.EncoderFollower
 import jaci.pathfinder.modifiers.TankModifier
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.defer
-import kotlinx.coroutines.experimental.delay
 import java.io.File
-import kotlin.system.measureTimeMillis
 
 
 class MotionProfileTest : Command() {
@@ -45,7 +31,7 @@ class MotionProfileTest : Command() {
 
         val path = arrayOf(
                 Waypoint(0.0, 0.0, d2r(0.0)),
-                Waypoint(2.0, 2.0, d2r(45.0)),
+                Waypoint(2.0, 2.0, d2r(0.0)),
                 Waypoint(4.0, 2.0, d2r(0.0))
         )
 

@@ -1,9 +1,12 @@
 package com.team2898.robot
 
+import com.team2898.engine.extensions.Vector2D.l2
 import com.team2898.engine.kinematics.Rotation2d
+import com.team2898.robot.config.TESTING
 import com.team2898.robot.subsystems.Drivetrain
 import edu.wpi.first.wpilibj.Joystick
 import edu.wpi.first.wpilibj.networktables.NetworkTable
+import org.apache.commons.math3.geometry.euclidean.twod.Vector2D
 
 object OI {
 
@@ -34,7 +37,7 @@ object OI {
     val throttle
         get() = process(driverController.getRawAxis(1), square = true)
     val turn
-        get() = process(driverController.getRawAxis(4), square = true)
+        get() = turn()
     val quickTurn: Boolean
         get() = process(Math.max(driverController.getRawAxis(2), driverController.getRawAxis(3))) != 0.0
     val leftTrigger
@@ -57,4 +60,18 @@ object OI {
     val operatorRightY
         get() = process(operatorController.getRawAxis(5))
 
+    fun turn(): Double {
+        if (!TESTING) return process(driverController.getRawAxis(4), square = true) * 0.8
+        val y = driverController.getRawAxis(5)
+        val x = driverController.getRawAxis(4)
+
+        val theta = Math.atan2(y, x)
+        val thetaDeg = Math.toDegrees(theta)
+
+        val thetaTurn = ((thetaDeg - 90) * -1) / 90
+        val magnitude = Vector2D(y, x).l2
+
+        val turn = magnitude * thetaTurn
+        return turn
+    }
 }

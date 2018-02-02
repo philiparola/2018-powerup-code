@@ -90,7 +90,7 @@ class TalonWrapper(
     @Synchronized
     fun setControlFrameHz(map: Map<ControlFrame, Int>) {
         useAdaptiveFramerate = false
-        map.forEach{
+        map.forEach {
             val frame = it.key
             val periodMs = (1000.0 / it.value.toDouble()).roundToInt()
             setControlFramePeriod(frame, periodMs)
@@ -108,7 +108,7 @@ class TalonWrapper(
     }
 
     @Synchronized
-    fun setPID(Kp: Double, Ki: Double, Kd: Double, Kf: Double=0.0, slot: Int=0, iZone: Int=0) {
+    fun setPID(Kp: Double, Ki: Double, Kd: Double, Kf: Double = 0.0, slot: Int = 0, iZone: Int = 0) {
         config_IntegralZone(slot, iZone, 0)
         config_kP(slot, Kp, 0)
         config_kI(slot, Ki, 0)
@@ -116,4 +116,3 @@ class TalonWrapper(
         config_kF(slot, Kf, 0)
     }
 }
-
