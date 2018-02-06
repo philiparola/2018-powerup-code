@@ -1,14 +1,16 @@
 package com.team2898.robot.subsystems
 
-import com.ctre.phoenix.ErrorCode
+import com.ctre.phoenix.motorcontrol.LimitSwitchNormal
+import com.ctre.phoenix.motorcontrol.LimitSwitchSource
 import com.ctre.phoenix.motorcontrol.NeutralMode
 import com.ctre.phoenix.motorcontrol.VelocityMeasPeriod
+import com.team2898.engine.extensions.Vector2D.get
+import com.team2898.engine.extensions.Vector2D.times
 import com.team2898.engine.logic.*
 import com.team2898.robot.config.RobotMap.*
 import com.team2898.engine.motion.DriveSignal
 import com.team2898.engine.motion.TalonWrapper
 import com.team2898.robot.config.DrivetrainConf.*
-import edu.wpi.first.wpilibj.DoubleSolenoid
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D
 
 object Drivetrain : Subsystem(50.0, "Drivetrain") {
@@ -23,9 +25,10 @@ object Drivetrain : Subsystem(50.0, "Drivetrain") {
 
     val encVelInSec
         get() = Vector2D(
-                (leftMaster.sensorCollection.quadratureVelocity.toDouble()/409)*6*Math.PI, // 1 rot/sec is 41 enc units
-                (rightMaster.sensorCollection.quadratureVelocity.toDouble()/409)*6*Math.PI // 6" wheels,
+                (leftMaster.sensorCollection.quadratureVelocity.toDouble() / 409) * 6 * Math.PI, // 1 rot/sec is 41 enc units
+                (rightMaster.sensorCollection.quadratureVelocity.toDouble() / 409) * 6 * Math.PI // 6" wheels,
         )
+
     val encPosIn
         get() = Vector2D(
                 ((leftMaster.sensorCollection.quadraturePosition.toDouble()) / 4096) * 6 * Math.PI,
@@ -37,6 +40,10 @@ object Drivetrain : Subsystem(50.0, "Drivetrain") {
                 leftMaster.sensorCollection.quadratureVelocity.toDouble(),
                 rightMaster.sensorCollection.quadratureVelocity.toDouble()
         )
+
+    val encPosFt
+        get() = Vector2D(encPosIn[0] / 12, encPosIn[1] /12)
+
     val encPosRaw
         get() = Vector2D(
                 leftMaster.sensorCollection.quadraturePosition.toDouble(),
@@ -90,6 +97,9 @@ object Drivetrain : Subsystem(50.0, "Drivetrain") {
 
             configVelocityMeasurementPeriod(VelocityMeasPeriod.Period_10Ms, 0)
             configVelocityMeasurementWindow(32, 0)
+            configReverseSoftLimitEnable(false, 10)
+            configForwardSoftLimitEnable(false, 10)
+            configForwardLimitSwitchSource(LimitSwitchSource.Deactivated, LimitSwitchNormal.NormallyClosed, 10)
 
             setPID(Kp, Ki, Kd, Kf)
 
@@ -123,5 +133,11 @@ object Drivetrain : Subsystem(50.0, "Drivetrain") {
 
     override fun selfTest(): Boolean {
         return false
+    }
+
+    fun zeroEncoders() {
+        masters {
+            sensorCollection.setQuadraturePosition(0, 0)
+        }
     }
 }

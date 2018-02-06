@@ -35,7 +35,6 @@ object Navx: ISelfCheck, ILooper {
 
     val every = RunEvery(LOG_EVERY)
     override val loop = AsyncLooper(UPDATE_HZ) {
-
         if (every.shouldRun()) {
             Logger.logData("NavX", "IMU_YAW", yaw)
             Logger.logData("NavX", "IMU_YAW_RATE", yawRate)

@@ -5,9 +5,12 @@ import jaci.pathfinder.Waypoint
 val baselineProfile = arrayOf(
         // x, y, degrees
         Waypoint(0.0, 0.0, 0.0),
-        Waypoint(3.0, 0.0, 0.0),
-        Waypoint(10.0, 0.0, 12.0)
-//        Triple(50.0, 0.0, 0.0)
-//        Triple(90.0, 72.0, 45.0)
-//        Triple(12.0*12, 24.0*12, 90.0)
+        Waypoint(9.0, 0.0, 0.0)
+)
+
+val switchProfile = arrayOf(
+        Waypoint(0.0, 13.0, 0.0),
+        Waypoint(1.0, 13.0, 0.0),
+        Waypoint(10.0, 8.0, 0.0),
+        Waypoint(11.0, 8.0, 0.0)
 )

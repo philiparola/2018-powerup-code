@@ -40,6 +40,7 @@ class Robot : IterativeRobot() {
 
     val teleopCommand = Teleop()
     override fun robotInit() {
+        Drivetrain.zeroEncoders()
 //        bunnybotPneumatics.set(DoubleSolenoid.Value.kReverse)
         //System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", "2")
 
@@ -56,13 +57,13 @@ class Robot : IterativeRobot() {
         }
         */
 
-        val testProfileSettings = ProfileSettings(
-                hz = 100, maxVel = 50.0, maxAcc = 100.0, maxJerk = 100.0, wheelbaseWidth = 100.0, wayPoints = convWaypoint(baselineProfile), fitMethod = Trajectory.FitMethod.HERMITE_CUBIC, sampleRate = Trajectory.Config.SAMPLES_HIGH)
+//        val testProfileSettings = ProfileSettings(
+//                hz = 100, maxVel = 50.0, maxAcc = 100.0, maxJerk = 100.0, wheelbaseWidth = 100.0, wayPoints = convWaypoint(baselineProfile), fitMethod = Trajectory.FitMethod.HERMITE_CUBIC, sampleRate = Trajectory.Config.SAMPLES_HIGH)
+//
+//        val string = JSON().stringify(testProfileSettings)
+//        ProfileGenerator.deferProfile(testProfileSettings)
 
-        val string = JSON().stringify(testProfileSettings)
-        ProfileGenerator.deferProfile(testProfileSettings)
-
-//        AsyncLooper(100.0) {
+        AsyncLooper(100.0) {
 //            SmartDashboard.putNumber("dt left vel", Drivetrain.encVelInSec[0])
 //            SmartDashboard.putNumber("dt right vel", Drivetrain.encVelInSec[1])
 //            SmartDashboard.putNumber("dt left pos", Drivetrain.encPosIn[0])
@@ -70,31 +71,30 @@ class Robot : IterativeRobot() {
 //            SmartDashboard.putNumber("robot x", RobotPose.pose.x)
 //            SmartDashboard.putNumber("robot y", RobotPose.pose.y)
 //            SmartDashboard.putNumber("robot theta", RobotPose.pose.theta)
-//            SmartDashboard.putNumber("NavX yaw", Navx.yaw)
+            SmartDashboard.putNumber("NavX yaw", Navx.yaw)
 
 //            println("Left master current: ${Drivetrain.leftMaster.outputCurrent}")
 //            println("Right master current: ${Drivetrain.rightMaster.outputCurrent}")
 //            println("Left slave current: ${Drivetrain.leftSlave.outputCurrent}")
 //            println("Right slave current: ${Drivetrain.leftSlave.outputCurrent}")
+        }.start()
 
-
-//        }.start()
-
-//        SmartDashboard.putString("Session UUID", Logger.uuid)
+        SmartDashboard.putString("Session UUID", Logger.uuid)
 
 //        AsyncLooper(1.0) {
 //            println("Left master output voltage: ${Drivetrain.leftMaster.motorOutputVoltage}")
 //            println("Right master output voltage: ${Drivetrain.rightMaster.motorOutputVoltage}")
 //        }.start()
+        Drivetrain.controlMode = Drivetrain.ControlModes.OPEN_LOOP
     }
 
     override fun autonomousInit() {
 //        bunnybotPneumatics.set(DoubleSolenoid.Value.kReverse)
+        Drivetrain.controlMode = Drivetrain.ControlModes.OPEN_LOOP
         LoopManager.onAutonomous()
         Logger.logInfo(reflectLocation(), LogLevel.INFO, "Autonomous Init")
         Navx.reset()
         autoCommand.start()
-        Drivetrain.controlMode = Drivetrain.ControlModes.OPEN_LOOP
 
         if (teleopCommand.isRunning) teleopCommand.cancel()
 

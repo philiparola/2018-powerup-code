@@ -1,5 +1,6 @@
 package com.team2898.robot.commands
 
+import com.team2898.engine.extensions.Vector2D.get
 import com.team2898.engine.kinematics.Rotation2d
 import com.team2898.engine.motion.CheesyDrive
 import edu.wpi.first.wpilibj.command.Command
@@ -13,7 +14,8 @@ class Teleop : Command() {
 //        Drivetrain.controlMode = Drivetrain.ControlModes.VELOCITY_DRIVE
         Drivetrain.controlMode = Drivetrain.ControlModes.OPEN_LOOP
     }
-
+    var vel = 0.0
+    var maxVel = 0.0
     override fun execute() {
 
         CheesyDrive.updateQuickTurn(OI.quickTurn)
@@ -32,6 +34,8 @@ class Teleop : Command() {
                         OI.quickTurn,
                         true
         )
+
+        println("${Drivetrain.encVelInSec[0]}, ${Drivetrain.encVelInSec[1]}")
     }
 
     override fun isFinished(): Boolean = false
