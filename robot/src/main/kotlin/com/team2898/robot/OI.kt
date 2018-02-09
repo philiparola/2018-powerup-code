@@ -50,6 +50,15 @@ object OI {
         get() = driverController.getRawButton(5)
     val highGear
         get() = driverController.getRawButton(6)
+    val aButton
+        get() = driverController.getRawButton(1)
+    val bButton
+        get() = driverController.getRawButton(2)
+    val xButton
+        get() = driverController.getRawButton(3)
+    val yButton
+        get() = driverController.getRawButton(4)
+
 
     val operatorLeftX
         get() = process(operatorController.getRawAxis(0))
@@ -59,6 +68,10 @@ object OI {
         get() = process(operatorController.getRawAxis(4))
     val operatorRightY
         get() = process(operatorController.getRawAxis(5))
+
+    // intake spark -> joystick left Y
+    // deploy talons -> button D pad up and down ish
+
 
     fun turn(): Double {
         if (!TESTING) return process(driverController.getRawAxis(4), square = true) * 0.8

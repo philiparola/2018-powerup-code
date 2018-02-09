@@ -1,9 +1,7 @@
 package com.team2898.robot.subsystems
 
-import com.ctre.phoenix.motorcontrol.LimitSwitchNormal
-import com.ctre.phoenix.motorcontrol.LimitSwitchSource
-import com.ctre.phoenix.motorcontrol.NeutralMode
-import com.ctre.phoenix.motorcontrol.VelocityMeasPeriod
+import com.ctre.phoenix.motorcontrol.*
+import com.team2898.engine.async.util.go
 import com.team2898.engine.extensions.Vector2D.get
 import com.team2898.engine.extensions.Vector2D.times
 import com.team2898.engine.logic.*
@@ -11,6 +9,7 @@ import com.team2898.robot.config.RobotMap.*
 import com.team2898.engine.motion.DriveSignal
 import com.team2898.engine.motion.TalonWrapper
 import com.team2898.robot.config.DrivetrainConf.*
+import kotlinx.coroutines.experimental.delay
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D
 
 object Drivetrain : Subsystem(50.0, "Drivetrain") {
@@ -25,29 +24,35 @@ object Drivetrain : Subsystem(50.0, "Drivetrain") {
 
     val encVelInSec
         get() = Vector2D(
-                (leftMaster.sensorCollection.quadratureVelocity.toDouble() / 409) * 6 * Math.PI, // 1 rot/sec is 41 enc units
-                (rightMaster.sensorCollection.quadratureVelocity.toDouble() / 409) * 6 * Math.PI // 6" wheels,
+                (leftMaster.getSelectedSensorVelocity(0).toDouble() / 409.6) * 6 * Math.PI, // 1 rot/sec is 41 enc units
+                (rightMaster.getSelectedSensorVelocity(0).toDouble() / 409.6) * 6 * Math.PI // 6" wheels,
         )
+
+    init {
+    }
 
     val encPosIn
         get() = Vector2D(
-                ((leftMaster.sensorCollection.quadraturePosition.toDouble()) / 4096) * 6 * Math.PI,
-                ((rightMaster.sensorCollection.quadraturePosition.toDouble()) / 4096) * 6 * Math.PI
+                ((leftMaster.getSelectedSensorPosition(0).toDouble()) / 4096) * 6 * Math.PI,
+                ((rightMaster.getSelectedSensorPosition(0).toDouble()) / 4096) * 6 * Math.PI
         )
 
     val encVelRaw
         get() = Vector2D(
-                leftMaster.sensorCollection.quadratureVelocity.toDouble(),
-                rightMaster.sensorCollection.quadratureVelocity.toDouble()
+                leftMaster.getSelectedSensorVelocity(0).toDouble(),
+                rightMaster.getSelectedSensorVelocity(0).toDouble()
         )
 
     val encPosFt
-        get() = Vector2D(encPosIn[0] / 12, encPosIn[1] /12)
+        get() = Vector2D(
+                encPosIn[0] / 12.toDouble(), // inches/sec/12 -> feet/sec
+                encPosIn[1] / 12.toDouble() // inches/sec/12 -> feet/sec
+        )
 
     val encPosRaw
         get() = Vector2D(
-                leftMaster.sensorCollection.quadraturePosition.toDouble(),
-                rightMaster.sensorCollection.quadraturePosition.toDouble()
+                leftMaster.getSelectedSensorPosition(0).toDouble(),
+                rightMaster.getSelectedSensorPosition(0).toDouble()
         )
 
     override val enableTimes = listOf(GamePeriods.TELEOP, GamePeriods.AUTO)
@@ -95,16 +100,20 @@ object Drivetrain : Subsystem(50.0, "Drivetrain") {
             configPeakCurrentDuration(PEAK_MAX_AMPS_DUR_MS, 0)
             enableCurrentLimit(CURRENT_LIMIT)
 
-            configVelocityMeasurementPeriod(VelocityMeasPeriod.Period_10Ms, 0)
-            configVelocityMeasurementWindow(32, 0)
+//            configVelocityMeasurementPeriod(VelocityMeasPeriod.Period_10Ms, 0)
+//            configVelocityMeasurementWindow(32, 0)
             configReverseSoftLimitEnable(false, 10)
             configForwardSoftLimitEnable(false, 10)
-            configForwardLimitSwitchSource(LimitSwitchSource.Deactivated, LimitSwitchNormal.NormallyClosed, 10)
+            configForwardLimitSwitchSource(LimitSwitchSource.Deactivated, LimitSwitchNormal.Disabled, 10)
 
             setPID(Kp, Ki, Kd, Kf)
 
-        }
+            setControlFramePeriod(ControlFrame.Control_3_General, 10)
 
+            setStatusFramePeriod(StatusFrameEnhanced.Status_2_Feedback0, 10, 0)
+            setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 10, 0)
+        }
+        rightMaster.setSensorPhase(true)
         driveStateMachine.apply {
             registerWhile(ControlModes.OPEN_LOOP) {
                 masters {
@@ -117,7 +126,6 @@ object Drivetrain : Subsystem(50.0, "Drivetrain") {
             }
             registerFrom(ControlModes.OPEN_LOOP) { openLoopPower = DriveSignal.BRAKE }
         }
-
         driveStateMachine.changeStateTo(controlMode)
     }
 

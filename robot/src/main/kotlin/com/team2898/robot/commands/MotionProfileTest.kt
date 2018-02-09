@@ -7,28 +7,17 @@ import com.team2898.robot.motion.pathfinder.*
 import com.team2898.robot.subsystems.Drivetrain
 import com.team2898.robot.subsystems.Navx
 import edu.wpi.first.wpilibj.command.Command
+import edu.wpi.first.wpilibj.command.WaitCommand
 import jaci.pathfinder.Pathfinder
-import jaci.pathfinder.Trajectory
 import jaci.pathfinder.followers.EncoderFollower
 import java.io.File
+import com.team2898.robot.motion.pathfinder.ProfilesSettings.testProfile
 
 
 class MotionProfileTest : Command() {
-    val testProfile = ProfileSettings(
-            hz = 100,
-            maxVel = 10.0,
-            maxAcc = 5.0,
-            maxJerk = 15.0,
-            wheelbaseWidth = 2.1,
-            wayPoints = convWaypoint(baselineProfile),
-            fitMethod = Trajectory.FitMethod.HERMITE_CUBIC,
-            sampleRate = Trajectory.Config.SAMPLES_HIGH
-    )
     val profile = ProfileGenerator.deferProfile(testProfile)
     val left = EncoderFollower(profile.first)
     val right = EncoderFollower(profile.second)
-    val encs = listOf(left, right)
-
 
     init {
         println("init")
@@ -36,14 +25,16 @@ class MotionProfileTest : Command() {
         left.configureEncoder(Drivetrain.encPosRaw[0].toInt(), 4096, 0.5)
         right.configureEncoder(Drivetrain.encPosRaw[1].toInt(), 4096, 0.5)
 
-        left.configurePIDVA(0.0, 0.0, 0.0, 1 / 15.0, 0.0)
-        right.configurePIDVA(0.0, 0.0, 0.0, 1 / 15.0, 0.0)
+        left.configurePIDVA(0.1, 0.01, 0.01, 1 / 14.6, 0.01)
+        right.configurePIDVA(0.1, 0.01, 0.01, 1 / 14.6, 0.01)
     }
 
     override fun initialize() {
         println("starting mp")
         Drivetrain.controlMode = Drivetrain.ControlModes.OPEN_LOOP
         Navx.reset()
+        Drivetrain.zeroEncoders()
+        object: WaitCommand(2.0) {} .start()
     }
 
     val sb = StringBuilder().append("t, left, right, r vel, l vel, angle diff, left dis, right dis\n")
@@ -53,6 +44,9 @@ class MotionProfileTest : Command() {
     var desiredHeading = 0.0
     var angleDifference = 0.0
     var turn = 0.0
+
+    val leftSB = StringBuilder().append("left motor, left vel\n")
+    val rightSB = StringBuilder().append("right motor, right vel\n")
 
     override fun execute() {
         if (isFinished) return
@@ -67,12 +61,17 @@ class MotionProfileTest : Command() {
         val l = left.calculate(Drivetrain.encPosRaw[0].toInt())
         val r = right.calculate(Drivetrain.encPosRaw[1].toInt())
         sb.append("$t, $r, $l, ${Drivetrain.encVelRaw[0]}, ${Drivetrain.encVelRaw[1]}, $angleDifference, ${Drivetrain.encPosFt[0]}, ${Drivetrain.encPosFt[1]}\n")
-        Drivetrain.openLoopPower = DriveSignal(l - turn, r + turn)
+        val leftMotor = l - turn
+        val rightMotor = r + turn
+        leftSB.append("${l - turn}, ${Drivetrain.encVelInSec[0]/12}\n")
+        rightSB.append("${r + turn}, ${Drivetrain.encVelInSec[1]/12}\n")
         t++
     }
 
     override fun end() {
         File("/home/lvuser/output.csv").writeText(sb.toString())
+        File("/home/lvuser/leftMotor.csv").writeText(leftSB.toString())
+        File("/home/lvuser/rightMotor.csv").writeText(rightSB.toString())
         Drivetrain.openLoopPower = DriveSignal(brake = true)
         println("end")
     }
@@ -81,4 +80,3 @@ class MotionProfileTest : Command() {
         return left.isFinished or right.isFinished
     }
 }
-

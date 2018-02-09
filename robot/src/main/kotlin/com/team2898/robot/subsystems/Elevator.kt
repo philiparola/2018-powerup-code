@@ -9,24 +9,45 @@ import com.team2898.engine.logic.ISelfCheck
 import com.team2898.engine.logic.Subsystem
 import com.team2898.engine.motion.DriveSignal
 import com.team2898.engine.motion.TalonWrapper
-import com.team2898.robot.config.ELEV_TALON_ID
-import com.team2898.robot.config.SLAVE_SRX
+import com.team2898.robot.config.ElevatorConf.*
+import org.apache.commons.math3.geometry.euclidean.twod.Vector2D
 
 object Elevator: Subsystem(name ="Elevator", loopHz = 100.0), ISelfCheck, ILooper {
+    val leftMaser = TalonWrapper(ELEV_LEFT_MASTER)
+    val leftSlave = TalonWrapper(ELEV_LEFT_SLAVE)
+    val rightMaster = TalonWrapper(ELEV_RIGHT_MASTER)
+    val rightSlave = TalonWrapper(ELEV_RIGHT_SLAVE)
 
-    val motor = TalonWrapper(ELEV_TALON_ID)
-    val slaveMotor = TalonWrapper(SLAVE_SRX)
-
+    val masters = listOf(leftMaser, rightMaster)
 
     init {
-        motor.apply {
-            slaveMotor slaveTo motor
+        leftSlave slaveTo leftMaser
+        rightSlave slaveTo rightMaster
 
+        masters.forEach {
+            it.apply {
+                setMagEncoder()
+                configPeakCurrentLimit(ELEV_PEAK_MAX_AMPS, 0)
+                configContinuousCurrentLimit(ELEV_CONT_MAX_AMPS, 0)
+                configPeakCurrentDuration(ELEV_PEAK_MAX_AMPS_DUR_MS, 0)
+                enableCurrentLimit(ELEV_CURRENT_LIMIT)
+
+                setPID(ELEV_Kp, ELEV_Ki, ELEV_Kd, ELEV_Kf)
+            }
         }
     }
 
-    val encRawVel: Int
-        get() = motor.sensorCollection.quadratureVelocity
+    val encRawVel
+        get() = Vector2D(
+                leftMaser.sensorCollection.quadratureVelocity.toDouble(),
+                rightMaster.sensorCollection.quadratureVelocity.toDouble()
+        )
+
+    val encRawPos
+        get() = Vector2D(
+                leftMaser.sensorCollection.quadraturePosition.toDouble(),
+                rightMaster.sensorCollection.quadraturePosition.toDouble()
+        )
 
     override val loop: AsyncLooper
         get() = super.loop
@@ -34,7 +55,6 @@ object Elevator: Subsystem(name ="Elevator", loopHz = 100.0), ISelfCheck, ILoope
     override val enableTimes: List<GamePeriods> = listOf(GamePeriods.TELEOP, GamePeriods.AUTO)
 
     override fun onStart() {
-        motor.sensorCollection.setAnalogPosition(0, 0)
     }
     override fun onLoop() {
     }
