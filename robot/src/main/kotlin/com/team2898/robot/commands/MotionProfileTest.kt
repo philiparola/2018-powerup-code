@@ -12,9 +12,21 @@ import jaci.pathfinder.Pathfinder
 import jaci.pathfinder.followers.EncoderFollower
 import java.io.File
 import com.team2898.robot.motion.pathfinder.ProfilesSettings.testProfile
+import jaci.pathfinder.Trajectory
 
 
 class MotionProfileTest : Command() {
+    val testProfile = ProfileSettings(
+            hz = 100,
+            maxVel = 3.5,
+            maxAcc = 2.0,
+            maxJerk = 10.0,
+            wheelbaseWidth = 2.1,
+            wayPoints = convWaypoint(baselineProfile),
+            fitMethod = Trajectory.FitMethod.HERMITE_CUBIC,
+            sampleRate = Trajectory.Config.SAMPLES_HIGH
+    )
+
     val profile = ProfileGenerator.deferProfile(testProfile)
     val left = EncoderFollower(profile.first)
     val right = EncoderFollower(profile.second)
@@ -25,8 +37,8 @@ class MotionProfileTest : Command() {
         left.configureEncoder(Drivetrain.encPosRaw[0].toInt(), 4096, 0.5)
         right.configureEncoder(Drivetrain.encPosRaw[1].toInt(), 4096, 0.5)
 
-        left.configurePIDVA(0.1, 0.01, 0.01, 1 / 14.6, 0.01)
-        right.configurePIDVA(0.1, 0.01, 0.01, 1 / 14.6, 0.01)
+        left.configurePIDVA(0.0, 0.0, 0.0, 1 / 14.6, 0.0)
+        right.configurePIDVA(0.0, 0.0, 0.0, 1 / 14.6, 0.0)
     }
 
     override fun initialize() {
@@ -34,7 +46,6 @@ class MotionProfileTest : Command() {
         Drivetrain.controlMode = Drivetrain.ControlModes.OPEN_LOOP
         Navx.reset()
         Drivetrain.zeroEncoders()
-        object: WaitCommand(2.0) {} .start()
     }
 
     val sb = StringBuilder().append("t, left, right, r vel, l vel, angle diff, left dis, right dis\n")
@@ -44,9 +55,6 @@ class MotionProfileTest : Command() {
     var desiredHeading = 0.0
     var angleDifference = 0.0
     var turn = 0.0
-
-    val leftSB = StringBuilder().append("left motor, left vel\n")
-    val rightSB = StringBuilder().append("right motor, right vel\n")
 
     override fun execute() {
         if (isFinished) return
@@ -63,15 +71,12 @@ class MotionProfileTest : Command() {
         sb.append("$t, $r, $l, ${Drivetrain.encVelRaw[0]}, ${Drivetrain.encVelRaw[1]}, $angleDifference, ${Drivetrain.encPosFt[0]}, ${Drivetrain.encPosFt[1]}\n")
         val leftMotor = l - turn
         val rightMotor = r + turn
-        leftSB.append("${l - turn}, ${Drivetrain.encVelInSec[0]/12}\n")
-        rightSB.append("${r + turn}, ${Drivetrain.encVelInSec[1]/12}\n")
+        Drivetrain.openLoopPower = DriveSignal(leftMotor, rightMotor)
         t++
     }
 
     override fun end() {
         File("/home/lvuser/output.csv").writeText(sb.toString())
-        File("/home/lvuser/leftMotor.csv").writeText(leftSB.toString())
-        File("/home/lvuser/rightMotor.csv").writeText(rightSB.toString())
         Drivetrain.openLoopPower = DriveSignal(brake = true)
         println("end")
     }

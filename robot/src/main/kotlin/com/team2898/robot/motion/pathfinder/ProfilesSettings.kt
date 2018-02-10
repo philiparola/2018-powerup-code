@@ -6,7 +6,7 @@ import com.team2898.robot.motion.pathfinder.convWaypoint
 import jaci.pathfinder.Trajectory
 
 val testProfile = ProfileSettings(
-        hz = 100,
+        hz = 50,
         maxVel = 10.0,
         maxAcc = 5.0,
         maxJerk = 15.0,

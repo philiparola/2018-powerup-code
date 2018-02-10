@@ -1,6 +1,7 @@
 package com.team2898.robot.subsystems
 
 import com.team2898.engine.extensions.Vector2D.get
+import com.team2898.engine.kinematics.Rotation2d
 import com.team2898.engine.logic.GamePeriods
 import com.team2898.engine.logic.ILooper
 import com.team2898.engine.logic.Subsystem
@@ -11,7 +12,7 @@ import org.apache.commons.math3.geometry.euclidean.twod.Vector2D
 
 object Intake : ILooper, Subsystem(100.0, "Intake") {
     override val enableTimes: List<GamePeriods> = listOf(GamePeriods.AUTO, GamePeriods.TELEOP)
-
+    val i = Rotation2d
     val leftDeployTalon = TalonWrapper(INTAKE_MASTER) // deployy
     val rightDeployTalon = TalonWrapper(INTAKE_SLAVE)
     val leftSpark = Spark(LEFT_SPARK) // spinning thingyyyy

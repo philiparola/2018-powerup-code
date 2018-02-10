@@ -8,36 +8,46 @@ import com.team2898.engine.logging.reflectLocation
 import com.team2898.engine.logic.LoopManager
 import com.team2898.robot.commands.ProfileFollower
 import com.team2898.robot.commands.Teleop
-import com.team2898.robot.motion.pathfinder.ProfileGenerator
+import com.team2898.robot.motion.pathfinder.*
 import com.team2898.robot.motion.pathfinder.ProfilesSettings.testProfile
-import edu.wpi.first.wpilibj.networktables.NetworkTable as nt
 import edu.wpi.first.wpilibj.command.Scheduler
 import com.team2898.robot.subsystems.*
 import edu.wpi.first.networktables.NetworkTableInstance
 import edu.wpi.first.wpilibj.DriverStation
 import edu.wpi.first.wpilibj.IterativeRobot
+import edu.wpi.first.wpilibj.TimedRobot
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import jaci.pathfinder.Trajectory
 
-class Robot : IterativeRobot() {
+class Robot : TimedRobot() {
     companion object {
         val debug = true
         val ntInstance = NetworkTableInstance.create()
     }
 
     val data = DriverStation.getInstance().gameSpecificMessage
+    val profile = ProfileGenerator.deferProfile(
+            ProfileSettings(
+                    hz = 50,
+                    maxVel = 3.0,
+                    maxAcc = 1.0,
+                    maxJerk = 5.0,
+                    wheelbaseWidth = 2.2568170930430758,
+                    wayPoints = convWaypoint(switchProfile),
+                    fitMethod = Trajectory.FitMethod.HERMITE_CUBIC,
+                    sampleRate = Trajectory.Config.SAMPLES_HIGH
+            )
 
-    val profile = ProfileGenerator.deferProfile(testProfile)
-    val autoCommnad = ProfileFollower(profile)
-
+    )
+    val autoCommnad = ProfileFollower(Pair(profile.second, profile.first))
 
     val teleopCommand = Teleop()
     override fun robotInit() {
         Drivetrain.zeroEncoders()
 
         AsyncLooper(100.0) {
-            SmartDashboard.putNumber("dt left vel", Drivetrain.encVelInSec[0]/12.0)
-            SmartDashboard.putNumber("dt right vel", Drivetrain.encVelInSec[1]/12.0)
+            SmartDashboard.putNumber("dt left vel", Drivetrain.encVelInSec[0] / 12.0)
+            SmartDashboard.putNumber("dt right vel", Drivetrain.encVelInSec[1] / 12.0)
             SmartDashboard.putNumber("dt left pos", Drivetrain.encPosIn[0])
             SmartDashboard.putNumber("dt right pos", Drivetrain.encPosIn[1])
             SmartDashboard.putNumber("NavX yaw", Navx.yaw)

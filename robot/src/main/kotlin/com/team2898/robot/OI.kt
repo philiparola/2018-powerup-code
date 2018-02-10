@@ -2,10 +2,9 @@ package com.team2898.robot
 
 import com.team2898.engine.extensions.Vector2D.l2
 import com.team2898.engine.kinematics.Rotation2d
-import com.team2898.robot.config.TESTING
+import com.team2898.robot.config.ControllerConf.TESTING
 import com.team2898.robot.subsystems.Drivetrain
 import edu.wpi.first.wpilibj.Joystick
-import edu.wpi.first.wpilibj.networktables.NetworkTable
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D
 
 object OI {

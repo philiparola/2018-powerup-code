@@ -10,17 +10,6 @@ val LOG_HZ = 10.0
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 // Ancillary
 val FILTER_BUFFER_SIZE = Math.round(AVG_PERIOD_MS.toDouble()/(1000.0/UPDATE_HZ)).toInt()
 val BUFFER_SIZE = Math.round((DATA_STORAGE_TIME_MS.toDouble())/(1000.0/UPDATE_HZ)).toInt()
