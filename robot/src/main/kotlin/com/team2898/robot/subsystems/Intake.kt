@@ -18,6 +18,17 @@ object Intake : ILooper, Subsystem(100.0, "Intake") {
     val leftSpark = Spark(LEFT_SPARK) // spinning thingyyyy
     val rightSpark = Spark(RIGHT_SPARK)
 
+    val deployEncVelRaw: Vector2D
+        get() = Vector2D(
+                leftDeployTalon.sensorCollection.quadratureVelocity.toDouble(),
+                rightDeployTalon.sensorCollection.quadratureVelocity.toDouble()
+        )
+
+    val deployEncVelFtSec: Vector2D
+        get() = Vector2D(
+                (leftDeployTalon.sensorCollection.quadratureVelocity.toDouble() / 409.6), // TODO * circ of the gear or something
+                (rightDeployTalon.sensorCollection.quadratureVelocity.toDouble() / 409.6)
+        )
 
     var talonTargetSpeed = Vector2D(0.0, 0.0)
         set(value) {

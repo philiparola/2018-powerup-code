@@ -4,10 +4,11 @@ import jaci.pathfinder.Pathfinder
 import jaci.pathfinder.Trajectory
 import jaci.pathfinder.Waypoint
 import kotlinx.serialization.*
+import java.nio.file.Path
 
 val convWaypoint: (prof: Array<Waypoint>) -> List<Triple<Double, Double, Double>> = { prof ->
     prof.map { point ->
-        Triple<Double, Double, Double>(point.x, point.y, point.angle)
+        Triple<Double, Double, Double>(point.x, point.y, Pathfinder.d2r(point.angle))
     }
 }
 
