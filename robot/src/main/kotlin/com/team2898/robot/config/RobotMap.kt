@@ -5,7 +5,9 @@ const val RIGHT_MASTER_CANID: Int = 3
 const val LEFT_SLAVE_CANID: Int = 2
 const val RIGHT_SLAVE_CANID: Int = 4
 
-//const val DT_SOLENOID_FORWARD_ID = 2
-//const val DT_SOLENOID_REVERSE_ID = 3
+const val ELEV_MASTER_CANID = 5
+const val ELEV_SLAVE1_CANID = 6
+const val ELEV_SLAVE2_CANID = 7
+const val ELEV_SLAVE3_CANID = 8
 
 const val PDP_CANID = 5

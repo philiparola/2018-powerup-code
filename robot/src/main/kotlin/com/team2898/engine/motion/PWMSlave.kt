@@ -8,7 +8,7 @@ import com.team2898.engine.logic.ILooper
 import com.team2898.engine.logic.LoopManager
 import edu.wpi.first.wpilibj.PWMSpeedController
 
-class PWMSlave(val slave: PWMSpeedController, val master: TalonSRX, val hz: Double, val modifyMasterStatusFrameHz: Boolean = true): ILooper {
+class PWMSlave(val slave: PWMSpeedController, val master: TalonSRX, val hz: Double, val modifyMasterStatusFrameHz: Boolean = false): ILooper {
     override val enableTimes = listOf(GamePeriods.AUTO, GamePeriods.TELEOP)
     init {
         LoopManager.register(this)

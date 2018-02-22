@@ -1,17 +1,37 @@
 package com.team2898.robot.motion.pathfinder.ProfilesSettings
 
-import com.team2898.robot.motion.pathfinder.ProfileSettings
-import com.team2898.robot.motion.pathfinder.baselineProfile
-import com.team2898.robot.motion.pathfinder.convWaypoint
+import com.team2898.robot.motion.pathfinder.*
 import jaci.pathfinder.Trajectory
 
-val testProfile = ProfileSettings(
+val rightSwitchFromCenter = ProfileSettings(
         hz = 50,
-        maxVel = 10.0,
-        maxAcc = 5.0,
-        maxJerk = 15.0,
-        wheelbaseWidth = 2.1,
-        wayPoints = convWaypoint(baselineProfile),
+        maxVel = 3.0,
+        maxAcc = 2.0,
+        maxJerk = 5.0,
+        wheelbaseWidth = 2.2568170930430758,
+        wayPoints = convWaypoint(rightSwitchFromCenterProfile),
+        fitMethod = Trajectory.FitMethod.HERMITE_CUBIC,
+        sampleRate = Trajectory.Config.SAMPLES_HIGH
+)
+
+val leftSwitchFromCenter = ProfileSettings(
+        hz = 50,
+        maxVel = 3.0,
+        maxAcc = 2.0,
+        maxJerk = 5.0,
+        wheelbaseWidth = 2.2568170930430758,
+        wayPoints = convWaypoint(leftSwitchFromCenterProfile),
+        fitMethod = Trajectory.FitMethod.HERMITE_CUBIC,
+        sampleRate = Trajectory.Config.SAMPLES_HIGH
+)
+
+val rightSwitchFromLeft = ProfileSettings(
+        hz = 50,
+        maxVel = 3.0,
+        maxAcc = 2.0,
+        maxJerk = 5.0,
+        wheelbaseWidth = 2.2568170930430758,
+        wayPoints = convWaypoint(rightSwitchFromLeftProfile),
         fitMethod = Trajectory.FitMethod.HERMITE_CUBIC,
         sampleRate = Trajectory.Config.SAMPLES_HIGH
 )

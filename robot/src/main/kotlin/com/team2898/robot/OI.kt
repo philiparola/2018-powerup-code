@@ -6,6 +6,8 @@ import com.team2898.robot.config.ControllerConf.TESTING
 import com.team2898.robot.subsystems.Drivetrain
 import edu.wpi.first.wpilibj.Joystick
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D
+import kotlin.math.abs
+import kotlin.math.sign
 
 object OI {
 
@@ -49,24 +51,29 @@ object OI {
         get() = driverController.getRawButton(5)
     val highGear
         get() = driverController.getRawButton(6)
+
+
     val aButton
-        get() = driverController.getRawButton(1)
+        get() = operatorController.getRawButton(1)
     val bButton
-        get() = driverController.getRawButton(2)
+        get() = operatorController.getRawButton(2)
     val xButton
-        get() = driverController.getRawButton(3)
+        get() = operatorController.getRawButton(3)
     val yButton
-        get() = driverController.getRawButton(4)
+        get() = operatorController.getRawButton(4)
 
+    val raiseElev
+        get() = operatorController.getRawButton(5)
+    val lowerElev
+        get() = operatorController.getRawButton(6)
 
-    val operatorLeftX
-        get() = process(operatorController.getRawAxis(0))
-    val operatorLeftY
-        get() = process(operatorController.getRawAxis(1))
-    val operatorRightX
-        get() = process(operatorController.getRawAxis(4))
-    val operatorRightY
-        get() = process(operatorController.getRawAxis(5))
+    val closeIntake
+        get() = operatorController.getRawButton(9)
+
+    val raiseIntake
+        get() = (operatorController.getRawAxis(3) < -0.5)
+    val lowerIntake
+        get() = (operatorController.getRawAxis(3) > 0.5)
 
     // intake spark -> joystick left Y
     // deploy talons -> button D pad up and down ish
@@ -85,5 +92,12 @@ object OI {
 
         val turn = magnitude * thetaTurn
         return turn
+    }
+
+    fun calcIntakeSpeed(): Vector2D {
+        val x = operatorController.getRawAxis(1) // power
+        val y = operatorController.getRawAxis(2) // offset ish
+        // left, right
+        return Vector2D(x - sign(y) * abs(1 - y), x + sign(y) * abs(1 - y))
     }
 }

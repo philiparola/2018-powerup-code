@@ -67,7 +67,6 @@ class ProfileFollower(profile: Pair<Trajectory, Trajectory>) : Command() {
         t = 0
     }
 
-    val sb = StringBuilder().append("t, time, segment, left vel, right vel, left dis, right dis, left heading, right headings\n")
     override fun execute() {
         if (isFinished) return
         val currentDistance = Drivetrain.encPosFt - encoderOffset
@@ -77,7 +76,7 @@ class ProfileFollower(profile: Pair<Trajectory, Trajectory>) : Command() {
         val rightSeg = rightTraj.segments.get(currentSegment)
 
         val desiredHeading = Pathfinder.r2d(leftSeg.heading)
-        val angleDifference = Pathfinder.boundHalfDegrees(desiredHeading - Navx.yaw)
+        val angleDifference = Pathfinder.boundHalfDegrees(desiredHeading + Navx.yaw)
         val kp = 0.8
         val turn = kp * (-1.0 / 80.0) * angleDifference
 
@@ -96,7 +95,7 @@ class ProfileFollower(profile: Pair<Trajectory, Trajectory>) : Command() {
                 rightSeg.velocity,
                 rightSeg.acceleration
         )
-        Drivetrain.openLoopPower = DriveSignal(left - turn, right + turn)
+        Drivetrain.openLoopPower = DriveSignal(left + turn, right - turn)
         t++
     }
 

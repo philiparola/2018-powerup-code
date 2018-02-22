@@ -11,7 +11,7 @@ import edu.wpi.first.wpilibj.command.WaitCommand
 import jaci.pathfinder.Pathfinder
 import jaci.pathfinder.followers.EncoderFollower
 import java.io.File
-import com.team2898.robot.motion.pathfinder.ProfilesSettings.testProfile
+import com.team2898.robot.motion.pathfinder.ProfilesSettings.*
 import jaci.pathfinder.Trajectory
 
 

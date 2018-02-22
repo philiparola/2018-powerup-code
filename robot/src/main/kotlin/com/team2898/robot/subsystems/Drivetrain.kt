@@ -28,9 +28,6 @@ object Drivetrain : Subsystem(50.0, "Drivetrain") {
                 (rightMaster.getSelectedSensorVelocity(0).toDouble() / 409.6) * 6 * Math.PI // 6" wheels,
         )
 
-    init {
-    }
-
     val encPosIn
         get() = Vector2D(
                 ((leftMaster.getSelectedSensorPosition(0).toDouble()) / 4096) * 6 * Math.PI,

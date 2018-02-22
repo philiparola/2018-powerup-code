@@ -55,7 +55,6 @@ class PVAPID(val Kp: Double, val Ki: Double,
         output = clamp(output, minOutput, maxOutput)
 
 
-
         return output
     }
 

@@ -1,97 +1,94 @@
 package com.team2898.robot.subsystems
 
 import com.ctre.phoenix.motorcontrol.ControlMode
+import com.team2898.engine.async.AsyncLooper
 import com.team2898.engine.logic.GamePeriods
 import com.team2898.engine.logic.ILooper
 import com.team2898.engine.logic.ISelfCheck
 import com.team2898.engine.logic.Subsystem
 import com.team2898.engine.motion.TalonWrapper
 import com.team2898.robot.config.ElevatorConf.*
+import com.team2898.robot.config.RobotMap.ELEV_MASTER_CANID
+import com.team2898.robot.config.RobotMap.ELEV_SLAVE1_CANID
+import com.team2898.robot.config.RobotMap.ELEV_SLAVE2_CANID
+import com.team2898.robot.config.RobotMap.ELEV_SLAVE3_CANID
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D
 import kotlin.math.PI
+import kotlin.math.roundToInt
 
-object Elevator: Subsystem(name ="Elevator", loopHz = 100.0), ISelfCheck, ILooper {
-    val leftMaser = TalonWrapper(ELEV_LEFT_MASTER)
-    val leftSlave = TalonWrapper(ELEV_LEFT_SLAVE)
-    val rightMaster = TalonWrapper(ELEV_RIGHT_MASTER)
-    val rightSlave = TalonWrapper(ELEV_RIGHT_SLAVE)
+object Elevator : Subsystem(name = "Elevator", loopHz = 100.0), ISelfCheck, ILooper {
+    override val enableTimes: List<GamePeriods> = listOf(GamePeriods.TELEOP, GamePeriods.AUTO)
 
-    val masters = listOf(leftMaser, rightMaster)
+    val master = TalonWrapper(ELEV_MASTER_CANID)
+    val slaves = listOf(
+            TalonWrapper(ELEV_SLAVE1_CANID),
+            TalonWrapper(ELEV_SLAVE2_CANID),
+            TalonWrapper(ELEV_SLAVE3_CANID)
+    ).forEach { it slaveTo master }
 
-    val encRawVel
-        get() = Vector2D(
-                leftMaser.sensorCollection.quadratureVelocity.toDouble(),
-                rightMaster.sensorCollection.quadratureVelocity.toDouble()
-        )
+//    override val loop: AsyncLooper = AsyncLooper(100.0) {
+//        if (80 < Intake.currentPos.degrees) {
+//            if (this.currentPosFt < 3.0 && this.currentPosFt > 1) {
+//                Intake.sparkTargetSpeed = Vector2D(0.1, 0.1)
+//            }
+//        }
+////        TODO fix the shit
+//    }
 
-    val encVelFtSec
-        get() = Vector2D(
-                (leftMaser.sensorCollection.quadratureVelocity.toDouble() / 409.6), // TODO * circ of the gear
-                (rightMaster.sensorCollection.quadratureVelocity.toDouble() / 409.6)
-        )
-
-    val encRawPos
-        get() = Vector2D(
-                leftMaser.sensorCollection.quadraturePosition.toDouble(),
-                rightMaster.sensorCollection.quadraturePosition.toDouble()
-        )
-
-    var targetPos: Double = 0.0
+    var targetPosFt: Double = 0.0
         set(value) {
-            field = value
-            masters {
-
-            }
+            field = if (value > MAX_HEIGHT_FT) MAX_HEIGHT_FT
+            else if (value < MIN_HEIGHT_FT) MIN_HEIGHT_FT
+            else value
+            master.changeControlMode(ControlMode.MotionMagic)
+            master.set(ftToEncPos(field).toDouble())
         }
 
-    var currentPos: Vector2D
-        get() = Vector2D(
-                (leftMaser.sensorCollection.quadraturePosition / 4096.0) * (2.55 / 2) * PI / 12,
-                (rightMaster.sensorCollection.quadraturePosition / 4096.0) * (2.55 / 2) * PI / 12
-        )
+    var posTickOffset = 0
 
-    val ftSecToEnc: (Double) -> Double = { vel : Double ->
-        vel * 12 / PI / (2.55 / 2) * 4096.0 / 10
+    val currentVel
+        get() = encVelToFtSec(master.getSelectedSensorVelocity(0))
+
+    val currentPosFt
+        get() = encPosToFt(master.getSelectedSensorPosition(0))
+
+
+    fun ftSecToEncVel(vel: Double): Int {
+        return (vel * 12.0 *// ft/s -> in/sec
+                1 / (SPROCKET_PITCH_DIA * PI) * // in/s -> rot/sec
+                4096 * // rot/sec -> tick/sec
+                1 / 10.0 // tick/sec -> STU
+                ).roundToInt()
+    }
+
+    fun encVelToFtSec(vel: Int): Double {
+        return vel * 10.0 * // STU -> tick/sec
+                1 / 4096.0 * // tick/sec -> rot/sec
+                (SPROCKET_PITCH_DIA * PI) *  // rot/sec -> in/sec
+                1 / 12.0 // in/sec -> ft/sec
+    }
+
+    fun ftToEncPos(ft: Double): Int {
+        return (ft * 12.0 * 1 / (SPROCKET_PITCH_DIA * PI) * 4096.0).roundToInt() + posTickOffset
+    }
+
+    fun encPosToFt(tick: Int): Double {
+        return ((tick - posTickOffset).toDouble() * (1.0 / 4096.0) * (SPROCKET_PITCH_DIA * PI) / 12.0)
     }
 
     init {
-        leftSlave slaveTo leftMaser
-        rightSlave slaveTo rightMaster
+        master.apply {
+            setMagEncoder()
+            configPeakCurrentLimit(ELEV_PEAK_MAX_AMPS, 0)
+            configContinuousCurrentLimit(ELEV_CONT_MAX_AMPS, 0)
+            configPeakCurrentDuration(ELEV_PEAK_MAX_AMPS_DUR_MS, 0)
+            enableCurrentLimit(ELEV_CURRENT_LIMIT)
 
-        masters.forEach {
-            it.apply {
-                setMagEncoder()
-                configPeakCurrentLimit(ELEV_PEAK_MAX_AMPS, 0)
-                configContinuousCurrentLimit(ELEV_CONT_MAX_AMPS, 0)
-                configPeakCurrentDuration(ELEV_PEAK_MAX_AMPS_DUR_MS, 0)
-                enableCurrentLimit(ELEV_CURRENT_LIMIT)
-                changeControlMode(ControlMode.MotionMagic)
+            configMotionCruiseVelocity(ftSecToEncVel(ELEV_MAX_VEL), 0)
+            configMotionAcceleration(ftSecToEncVel(ELEV_MAX_ACC), 0)
 
-                configMotionCruiseVelocity(ftSecToEnc(2.0).toInt(), 0)
-                configMotionAcceleration(ftSecToEnc(2.0).toInt(), 0)
-
-                setPID(ELEV_Kp, ELEV_Ki, ELEV_Kd, ELEV_Kf)
-                sensorCollection.setQuadraturePosition(0, 0)
-            }
+            setSelectedSensorPosition(0, 0, 0)
         }
-        currentPos = Vector2D(0.0, 0.0)
-    }
-
-    fun masters(block: TalonWrapper.()-> Unit) {
-        masters.forEach {
-            it.apply(block)
-        }
-    }
-
-    override val enableTimes: List<GamePeriods> = listOf(GamePeriods.TELEOP, GamePeriods.AUTO)
-
-    override fun onStart() {
-
-    }
-    override fun onLoop() {
-    }
-
-    override fun onStop() {
     }
 
     override fun selfCheckup(): Boolean {
@@ -101,6 +98,5 @@ object Elevator: Subsystem(name ="Elevator", loopHz = 100.0), ISelfCheck, ILoope
     override fun selfTest(): Boolean {
         return true
     }
-
 }
 
