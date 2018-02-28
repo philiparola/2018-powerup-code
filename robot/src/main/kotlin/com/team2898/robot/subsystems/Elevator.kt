@@ -37,7 +37,7 @@ object Elevator : Subsystem(name = "Elevator", loopHz = 100.0), ISelfCheck, ILoo
         }
 
     var posTickOffset = 0
-    
+
     val currentPosFt
         get() = encPosToFt(master.getSelectedSensorPosition(0))
 

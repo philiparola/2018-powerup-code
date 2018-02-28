@@ -58,7 +58,6 @@ class Robot : TimedRobot() {
     }
 
     override fun autonomousInit() {
-
         Drivetrain.controlMode = Drivetrain.ControlModes.OPEN_LOOP
         LoopManager.onAutonomous()
         Logger.logInfo(reflectLocation(), LogLevel.INFO, "Autonomous Init")

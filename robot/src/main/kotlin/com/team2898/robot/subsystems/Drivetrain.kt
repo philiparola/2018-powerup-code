@@ -24,8 +24,8 @@ object Drivetrain : Subsystem(50.0, "Drivetrain") {
 
     val encVelInSec
         get() = Vector2D(
-                (leftMaster.getSelectedSensorVelocity(0).toDouble() / 409.6) * 6 * Math.PI, // 1 rot/sec is 41 enc units
-                (rightMaster.getSelectedSensorVelocity(0).toDouble() / 409.6) * 6 * Math.PI // 6" wheels,
+                (leftMaster.getSelectedSensorVelocity(0).toDouble() / 409.6) * 6 * Math.PI,
+                (rightMaster.getSelectedSensorVelocity(0).toDouble() / 409.6) * 6 * Math.PI
         )
 
     val encPosIn
@@ -54,9 +54,7 @@ object Drivetrain : Subsystem(50.0, "Drivetrain") {
 
     override val enableTimes = listOf(GamePeriods.TELEOP, GamePeriods.AUTO)
 
-    var baseLockPos = Vector2D(0.0, 0.0)
 
-    // -1 to 1, vbat
     var openLoopPower = DriveSignal.BRAKE
     var closedLoopVelTarget = DriveSignal.NEUTRAL
 
