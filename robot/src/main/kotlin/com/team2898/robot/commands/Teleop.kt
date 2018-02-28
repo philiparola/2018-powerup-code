@@ -49,23 +49,23 @@ class Teleop : Command() {
                 OI.quickTurn,
                 true
         )
+
         if (OI.aButton) Deploy().start()
         if (OI.bButton) ManipIntake().start()
         if (OI.xButton) LightThrow().start()
         if (OI.yButton) HeavyThrow().start()
 
         ////// intake piston ////
-        if (OI.closeIntake) Intake.intakePistonState = Intake.PistonState.CLOSED
-        else Intake.intakePistonState = Intake.PistonState.OPEN
+        if (OI.closeIntake) Intake.pistonState = Intake.PistonState.CLOSED
+        else Intake.pistonState = Intake.PistonState.OPEN
 
         ////// Elevator /////
-        if (OI.raiseElev) SetElevator(Elevator.currentPosFt + 1).start()
-        if (OI.lowerIntake) SetElevator(Elevator.currentPosFt - 1).start()
+        if (OI.raiseElev) SetElevator(Elevator.currentPosFt + 1, true).start()
+        if (OI.lowerIntake) SetElevator(Elevator.currentPosFt - 1, true).start()
 
         ////// Intake /////
-        if (OI.lowerIntake) Intake.talonTargetPos = Rotation2d.createFromDegrees(Intake.currentPos.degrees - 10)
-        if (OI.raiseIntake) Intake.talonTargetPos = Rotation2d.createFromDegrees(Intake.currentPos.degrees + 10)
-
+        if (OI.lowerIntake) Intake.talonTargetPos = Rotation2d.createFromDegrees(Intake.currentPos.first.degrees + 10)
+        if (OI.raiseIntake) Intake.talonTargetPos = Rotation2d.createFromDegrees(Intake.currentPos.first.degrees - 10)
         ////// Intake speed ////
         Intake.sparkTargetSpeed =  OI.calcIntakeSpeed()
     }

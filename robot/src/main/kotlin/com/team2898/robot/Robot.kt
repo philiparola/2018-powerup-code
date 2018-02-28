@@ -10,6 +10,7 @@ import com.team2898.robot.commands.ProfileFollower
 import com.team2898.robot.commands.Teleop
 import com.team2898.robot.config.RobotConf.SCHEDULER_HZ
 import com.team2898.robot.motion.pathfinder.*
+import com.team2898.engine.extensions.Vector2D.*
 import edu.wpi.first.wpilibj.command.Scheduler
 import com.team2898.robot.subsystems.*
 import com.team2898.robot.motion.pathfinder.ProfilesSettings.*
@@ -21,74 +22,57 @@ import openrio.powerup.MatchData
 class Robot : TimedRobot() {
     companion object {
         val debug = true
+        val start = AutoManager.StartLocations.LEFT
+        val target = AutoManager.TargetAutos.SWITCH
     }
-
-    val profile = ProfileGenerator.deferProfile(rightSwitchFromCenter)
-
-    val cameraServer = CameraServer.getInstance()
-    val cameras = listOf(0, 1, 2)
-
-    var index = 0
-
-    val autoCommnad = ProfileFollower(Pair(profile.second, profile.first))
-
     val teleopCommand = Teleop()
+
 
     override fun robotInit() {
         Drivetrain.zeroEncoders()
 
         AsyncLooper(100.0) {
-            cameraServer.startAutomaticCapture(cameras[index])
-            if (OI.operatorController.getRawButton(7)) {
-                index++
-                if (index == cameras.size) index = 0
-            }
-            if (OI.operatorController.getRawButton(8)) {
-                index--
-                if (index == -1) index = cameras.size - 1
-            }
-            SmartDashboard.putNumber("dt left vel", Drivetrain.encVelInSec[0] / 12.0)
-            SmartDashboard.putNumber("dt right vel", Drivetrain.encVelInSec[1] / 12.0)
-            SmartDashboard.putNumber("dt left pos", Drivetrain.encPosIn[0])
-            SmartDashboard.putNumber("dt right pos", Drivetrain.encPosIn[1])
             SmartDashboard.putNumber("NavX yaw", Navx.yaw)
+            SmartDashboard.putNumber("intake angle 1", Intake.currentPos.first.degrees)
+            SmartDashboard.putNumber("intake angle 2", Intake.currentPos.second.degrees)
+            SmartDashboard.putNumber("intake left sin", Intake.currentPos.first.sin)
+            SmartDashboard.putNumber("intake left cos", Intake.currentPos.first.cos)
+            SmartDashboard.putNumber("intake right sin", Intake.currentPos.second.sin)
+            SmartDashboard.putNumber("intake right cos", Intake.currentPos.second.cos)
+            SmartDashboard.putNumber("intake left pwm pos", Intake.leftDeployTalon.sensorCollection.pulseWidthPosition.toDouble())
+            SmartDashboard.putNumber("intake right pwm pos", Intake.rightDeployTalon.sensorCollection.pulseWidthPosition.toDouble())
+            SmartDashboard.putNumber("elev height", Elevator.currentPosFt)
+            SmartDashboard.putNumber("manip angle", Manipulator.currentPos().degrees)
+            SmartDashboard.putNumber("manip pwm pos", Manipulator.talon.sensorCollection.pulseWidthPosition.toDouble())
+            SmartDashboard.putNumber("manip cos", Manipulator.currentPos().cos)
+            SmartDashboard.putNumber("manip sin", Manipulator.currentPos().sin)
         }.start()
 
         SmartDashboard.putString("Session UUID", Logger.uuid)
 
-        Drivetrain.controlMode = Drivetrain.ControlModes.OPEN_LOOP
-
+        Intake.rehome()
+        Manipulator.rehome()
         AsyncLooper(SCHEDULER_HZ) {
             Scheduler.getInstance().run()
         }
     }
 
     override fun autonomousInit() {
+
         Drivetrain.controlMode = Drivetrain.ControlModes.OPEN_LOOP
         LoopManager.onAutonomous()
         Logger.logInfo(reflectLocation(), LogLevel.INFO, "Autonomous Init")
         Navx.reset()
-
-        autoCommnad.start()
-
-        val switchSide = MatchData.getOwnedSide(MatchData.GameFeature.SWITCH_NEAR)
-        val scaleSide = MatchData.getOwnedSide(MatchData.GameFeature.SCALE)
+        AutoManager.produceAuto(start, target).commnad.start()
 
         if (teleopCommand.isRunning) teleopCommand.cancel()
     }
-
-    override fun autonomousPeriodic() {
-    }
-
 
     override fun teleopInit() {
         Logger.logInfo(reflectLocation(), LogLevel.INFO, "Teleop Init")
         Drivetrain.controlMode = Drivetrain.ControlModes.OPEN_LOOP
         LoopManager.onTeleop()
-        teleopCommand.start()
-    }
 
-    override fun teleopPeriodic() {
     }
 
     override fun disabledInit() {

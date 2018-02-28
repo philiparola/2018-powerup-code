@@ -7,19 +7,14 @@ import com.team2898.engine.logic.GamePeriods
 import com.team2898.engine.logic.ILooper
 import com.team2898.engine.logic.Subsystem
 import com.team2898.engine.motion.TalonWrapper
-import com.team2898.robot.config.ElevatorConf.SPROCKET_PITCH_DIA
 import com.team2898.robot.config.ManipConf.*
+import com.team2898.robot.config.RobotMap.MANIP_TALON
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import kotlin.math.*
 
 
 object Manipulator : Subsystem(50.0, "manipulator"), ILooper {
     override val enableTimes: List<GamePeriods> = listOf(GamePeriods.AUTO, GamePeriods.TELEOP)
-
-    override val loop: AsyncLooper = AsyncLooper(100.0) {
-        SmartDashboard.putNumber("Manipulator sin", currentPos().sin)
-        SmartDashboard.putNumber("Manipulator cos", currentPos().cos)
-    }
 
     val talon = TalonWrapper(MANIP_TALON)
 
@@ -45,15 +40,6 @@ object Manipulator : Subsystem(50.0, "manipulator"), ILooper {
         rotation2d.radians / PI / 2 * 4096
     }
 
-    val velToSTU =  { vel: Double ->
-        vel.roundToInt() // TODO fix the shit
-    }
-
-    val accToSTU = { acc: Double ->
-        acc.roundToInt() // TODO fix the shit
-    }
-
-
     init {
         talon.apply {
             setMagEncoder()
@@ -62,19 +48,16 @@ object Manipulator : Subsystem(50.0, "manipulator"), ILooper {
             configPeakCurrentDuration(MANIP_PEAK_MAX_AMPS_DUR_MS, 0)
             enableCurrentLimit(MANIP_CURRENT_LIMIT)
 
-            configMotionAcceleration(accToSTU(MANIP_MAX_ACC), 0)
-            configMotionCruiseVelocity(velToSTU(MANIP_MAX_VEL), 0)
+            configMotionAcceleration(MANIP_MAX_ACC, 0)
+            configMotionCruiseVelocity(MANIP_MAX_VEL, 0)
 
             setPID(MANIP_Kp, MANIP_Ki, MANIP_Kd)
-            zeroEnc()
         }
     }
 
-    fun zeroEnc() {
-        talon.sensorCollection.setQuadraturePosition(0, 0)
-    }
 
     override fun onStart() {
+        this.targetPos = Rotation2d(1.0, 0.0)
     }
 
     override fun selfCheckup(): Boolean {
@@ -83,5 +66,9 @@ object Manipulator : Subsystem(50.0, "manipulator"), ILooper {
 
     override fun selfTest(): Boolean {
         return true
+    }
+
+    fun rehome() {
+        talon.sensorCollection.setQuadraturePosition((talon.sensorCollection.pulseWidthPosition - ABSO_OFFSET).roundToInt(), 0)
     }
 }

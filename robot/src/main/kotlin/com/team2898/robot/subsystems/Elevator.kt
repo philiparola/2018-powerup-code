@@ -26,14 +26,6 @@ object Elevator : Subsystem(name = "Elevator", loopHz = 100.0), ISelfCheck, ILoo
             TalonWrapper(ELEV_SLAVE3_CANID)
     ).forEach { it slaveTo master }
 
-//    override val loop: AsyncLooper = AsyncLooper(100.0) {
-//        if (80 < Intake.currentPos.degrees) {
-//            if (this.currentPosFt < 3.0 && this.currentPosFt > 1) {
-//                Intake.sparkTargetSpeed = Vector2D(0.1, 0.1)
-//            }
-//        }
-////        TODO fix the shit
-//    }
 
     var targetPosFt: Double = 0.0
         set(value) {
@@ -45,10 +37,7 @@ object Elevator : Subsystem(name = "Elevator", loopHz = 100.0), ISelfCheck, ILoo
         }
 
     var posTickOffset = 0
-
-    val currentVel
-        get() = encVelToFtSec(master.getSelectedSensorVelocity(0))
-
+    
     val currentPosFt
         get() = encPosToFt(master.getSelectedSensorPosition(0))
 

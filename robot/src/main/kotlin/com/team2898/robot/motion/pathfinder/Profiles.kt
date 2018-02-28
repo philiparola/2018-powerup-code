@@ -21,7 +21,7 @@ val leftSwitchFromCenterProfile = arrayOf( // testing, should not work // TODO
         Waypoint(10.5,17.0, 0.0)
 )
 
-val leftSwitchFromLeft = arrayOf( // testing, should not work // TODO
+val leftSwitchFromLeftProfile = arrayOf( // testing, should not work // TODO
         Waypoint(1.5, 23.0, 0.0),
         Waypoint(10.0, 23.0, 0.0),
         Waypoint(14.0, 20.5, 90.0)
@@ -36,13 +36,13 @@ val rightSwitchFromLeftProfile = arrayOf( // testing, should NOT WORK!!!!! // TO
         Waypoint(14.0, 6.0, -90.0)
 )
 
-val rightSwitchFromRight = arrayOf( // testing, not work // TODO
+val rightSwitchFromRightProfile = arrayOf( // testing, not work // TODO
         Waypoint(1.5, 4.0, 0.0),
         Waypoint(10.0, 4.0, 0.0),
         Waypoint(14.0, 6.5, -90.0)
 )
 
-val leftSwitchFromRight = arrayOf( // testing, not work // TODO
+val leftSwitchFromRightProfile = arrayOf( // testing, not work // TODO
         Waypoint(1.5, 4.0, 0.0),
         Waypoint(14.0, 4.0, 0.0),
         Waypoint(19.0, 8.0, -90.0),

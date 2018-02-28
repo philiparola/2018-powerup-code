@@ -10,9 +10,10 @@ import edu.wpi.first.wpilibj.command.CommandGroup
 import edu.wpi.first.wpilibj.command.WaitForChildren
 import openrio.powerup.MatchData
 
-class SwitchFromCenter(ownedSide: MatchData.OwnedSide): CommandGroup() {
+class SwitchFromCenter: CommandGroup() {
+    val switchSide = MatchData.getOwnedSide(MatchData.GameFeature.SWITCH_NEAR)
     init {
-        addParallel(SetElevator(2.0))
+        addParallel(SetElevator(2.0, false))
         if (switchSide == MatchData.OwnedSide.LEFT)
             addParallel(ProfileFollower(ProfileGenerator.deferProfile(leftSwitchFromCenter)))
         if (switchSide == MatchData.OwnedSide.RIGHT)

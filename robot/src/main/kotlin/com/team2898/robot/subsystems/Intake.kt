@@ -8,11 +8,14 @@ import com.team2898.engine.logic.ILooper
 import com.team2898.engine.logic.Subsystem
 import com.team2898.engine.motion.TalonWrapper
 import com.team2898.robot.config.IntakeConf.*
+import com.team2898.robot.config.RobotMap.INTAKE_LEFT
+import com.team2898.robot.config.RobotMap.INTAKE_RIGHT
 import edu.wpi.first.wpilibj.DoubleSolenoid
 import edu.wpi.first.wpilibj.Spark
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D
 import kotlin.math.PI
 import kotlin.math.roundToInt
+
 
 object Intake : ILooper, Subsystem(50.0, "Intake") {
     override val enableTimes: List<GamePeriods> = listOf(GamePeriods.AUTO, GamePeriods.TELEOP)
@@ -43,11 +46,6 @@ object Intake : ILooper, Subsystem(50.0, "Intake") {
             }
         }
 
-    //val deployEncVelFtSec: Vector2D
-    //    get() = Vector2D(
-    //            (leftDeployTalon.sensorCollection.quadratureVelocity.toDouble() / 409.6), // TODO
-    //            (rightDeployTalon.sensorCollection.quadratureVelocity.toDouble() / 409.6)
-    //    )
 
     val rotation2dToEncPos = { rotation2d: Rotation2d ->
         rotation2d.radians / 2 / PI * 4096
@@ -93,19 +91,17 @@ object Intake : ILooper, Subsystem(50.0, "Intake") {
                 setPID(INTAKE_Kp, INTAKE_Ki, INTAKE_Kd)
                 configMotionAcceleration(INTAKE_MAX_ACC, 0)
                 configMotionCruiseVelocity(INTAKE_MAX_VEL, 0)
-
-                ((sensorCollection.pulseWidthPosition and 0xFFF) - ABSO_OFFSET).roundToInt()
-
             }
         }
     }
 
     override fun onStart() {
-        listOf(leftDeployTalon, rightDeployTalon).forEach {
-            it.apply {
-                ((sensorCollection.pulseWidthPosition and 0xFFF) - ABSO_OFFSET).roundToInt()
-            }
-        }
+        this.talonTargetPos = Rotation2d(1.0, 0.0)
+    }
+
+    fun rehome() {
+        leftDeployTalon.sensorCollection.setQuadraturePosition((leftDeployTalon.sensorCollection.pulseWidthPosition - ABSO_OFFSET_LEFT).roundToInt(), 0)
+        rightDeployTalon.sensorCollection.setQuadraturePosition((rightDeployTalon.sensorCollection.pulseWidthPosition - ABSO_OFFSET_LEFT).roundToInt(), 0)
     }
 
 }

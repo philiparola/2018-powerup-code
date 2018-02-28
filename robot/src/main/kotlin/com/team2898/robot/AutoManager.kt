@@ -1,6 +1,13 @@
 package com.team2898.robot
 
+import com.team2898.robot.commands.auto.Baseline
+import com.team2898.robot.commands.auto.SwitchFromCenter
+import com.team2898.robot.commands.auto.SwitchFromLeft
+import com.team2898.robot.commands.auto.SwitchFromRight
+import edu.wpi.first.wpilibj.command.Command
 import edu.wpi.first.wpilibj.command.CommandGroup
+import openrio.powerup.MatchData
+import java.util.*
 
 
 object AutoManager {
@@ -14,20 +21,42 @@ object AutoManager {
 
     val invalidAutos = listOf(
             Pair(StartLocations.CENTER, TargetAutos.SCALE),
-            Pair(StartLocations.CENTER, TargetAutos.TWO_CUBE_SCALE)
+            Pair(StartLocations.CENTER, TargetAutos.TWO_CUBE_SCALE),
+            Pair(StartLocations.LEFT, TargetAutos.SCALE),
+            Pair(StartLocations.LEFT, TargetAutos.TWO_CUBE_SCALE)
     )
+
+    data class AutoPair(val start: StartLocations, val target: TargetAutos, val commnad: Command) {
+        fun create(): MutableMap<Pair<StartLocations, TargetAutos>, Command> {
+            return mutableMapOf<Pair<StartLocations, TargetAutos>, Command> (
+                    Pair(Pair(start, target), commnad)
+            )
+        }
+    }
 
     val leftFallback = TargetAutos.SWITCH
     val rightFallback = TargetAutos.SWITCH
     val centerFallback = TargetAutos.SWITCH
 
-
-    internal val StartTargetCmdPairing =
-            mutableMapOf<Pair<StartLocations, TargetAutos>, CommandGroup>(
-            )
+    val switchSide = MatchData.getOwnedSide(MatchData.GameFeature.SWITCH_NEAR)
+    val scaleSide = MatchData.getOwnedSide(MatchData.GameFeature.SCALE)
 
 
-    fun produceAuto(start: StartLocations, target: TargetAutos) {
+    // left, left = left switch
+    // left, right = baseline
+    // center, left = left switch
+    // center, right = right switch
+    // right, left = baseline
+    // right, right = right switch
 
+    fun produceAuto(start: StartLocations, target: TargetAutos): AutoPair {
+        if (target == TargetAutos.SWITCH) {
+            return when (start) {
+                StartLocations.RIGHT -> AutoPair(start, target, SwitchFromRight())
+                StartLocations.CENTER -> AutoPair(start, target, SwitchFromCenter())
+                StartLocations.LEFT -> AutoPair(start, target, SwitchFromLeft())
+            }
+        }
+        return AutoPair(start, target, Baseline())
     }
 }

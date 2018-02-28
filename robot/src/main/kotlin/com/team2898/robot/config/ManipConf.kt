@@ -2,7 +2,6 @@ package com.team2898.robot.config.ManipConf
 
 import com.team2898.engine.kinematics.Rotation2d
 
-const val MANIP_TALON = 0
 
 const val MANIP_CURRENT_LIMIT = true
 const val MANIP_CONT_MAX_AMPS = 15
@@ -13,8 +12,10 @@ const val MANIP_Kp = 0.0
 const val MANIP_Ki = 0.0
 const val MANIP_Kd = 0.0
 
-const val MANIP_MAX_VEL = 0.0 // TODO in FSTU
-const val MANIP_MAX_ACC = 0.0 // TODO
+const val MANIP_MAX_VEL = 2000 // TODO in FSTU
+const val MANIP_MAX_ACC = 2000 // TODO
+
+const val ABSO_OFFSET = 0.0 // TODO
 
 ///////////// COMMAND ////////////
 
