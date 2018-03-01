@@ -8,7 +8,7 @@ const val INTAKE_CONT_MAX_AMPS = 15
 const val INTAKE_PEAK_MAX_AMPS = 17
 const val INTAKE_PEAK_MAX_AMPS_DUR_MS = 500
 
-const val INTAKE_Kp = 0.001
+const val INTAKE_Kp = 0.043
 const val INTAKE_Ki = 0.01
 const val INTAKE_Kd = 0.0
 

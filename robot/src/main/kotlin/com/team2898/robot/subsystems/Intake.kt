@@ -3,6 +3,9 @@ package com.team2898.robot.subsystems
 import com.ctre.phoenix.motorcontrol.ControlMode
 import com.team2898.engine.extensions.Vector2D.get
 import com.team2898.engine.kinematics.Rotation2d
+import com.team2898.engine.logging.LogLevel
+import com.team2898.engine.logging.Logger
+import com.team2898.engine.logging.SelfCheckFailException
 import com.team2898.engine.logic.GamePeriods
 import com.team2898.engine.logic.ILooper
 import com.team2898.engine.logic.Subsystem
@@ -11,11 +14,11 @@ import com.team2898.robot.config.IntakeConf.*
 import com.team2898.robot.config.RobotMap.INTAKE_LEFT
 import com.team2898.robot.config.RobotMap.INTAKE_RIGHT
 import edu.wpi.first.wpilibj.DoubleSolenoid
+import edu.wpi.first.wpilibj.DriverStation
 import edu.wpi.first.wpilibj.Spark
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D
 import kotlin.math.PI
 import kotlin.math.roundToInt
-
 
 object Intake : ILooper, Subsystem(50.0, "Intake") {
     override val enableTimes: List<GamePeriods> = listOf(GamePeriods.AUTO, GamePeriods.TELEOP)
@@ -100,8 +103,30 @@ object Intake : ILooper, Subsystem(50.0, "Intake") {
     }
 
     fun rehome() {
-        leftDeployTalon.sensorCollection.setQuadraturePosition((leftDeployTalon.sensorCollection.pulseWidthPosition - ABSO_OFFSET_LEFT).roundToInt(), 0)
-        rightDeployTalon.sensorCollection.setQuadraturePosition((rightDeployTalon.sensorCollection.pulseWidthPosition - ABSO_OFFSET_LEFT).roundToInt(), 0)
+        leftDeployTalon.sensorCollection.setQuadraturePosition(((leftDeployTalon.sensorCollection.pulseWidthPosition and 0xFFF) - ABSO_OFFSET_LEFT).roundToInt(), 0)
+        rightDeployTalon.sensorCollection.setQuadraturePosition(((rightDeployTalon.sensorCollection.pulseWidthPosition and 0xFFF) - ABSO_OFFSET_RIGHT).roundToInt(), 0)
+    }
+
+    override fun selfCheckup(): Boolean {
+        var fail = false
+        if (leftDeployTalon.pwmPos == 0) {
+            fail = true
+            try {
+                throw SelfCheckFailException("Left intake talon mag encoder now found", LogLevel.WARNING)
+            } catch (e: SelfCheckFailException) {
+                DriverStation.reportError(e.reason, true)
+            }
+        }
+        if (rightDeployTalon.pwmPos == 0) {
+            fail = true
+            try {
+                throw SelfCheckFailException("Right intake talon mag encoder now found", LogLevel.WARNING)
+            } catch (e: SelfCheckFailException) {
+                DriverStation.reportError(e.reason, true)
+            }
+        }
+        if (!fail) Logger.logInfo("Intake selfCheckup", LogLevel.INFO, "selfCheckup Passed!")
+        return !fail
     }
 
 }

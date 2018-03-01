@@ -1,17 +1,19 @@
 package com.team2898.robot.subsystems
 
 import com.ctre.phoenix.motorcontrol.ControlMode
-import com.team2898.engine.async.AsyncLooper
 import com.team2898.engine.kinematics.Rotation2d
+import com.team2898.engine.logging.LogLevel
+import com.team2898.engine.logging.Logger
+import com.team2898.engine.logging.SelfCheckFailException
 import com.team2898.engine.logic.GamePeriods
 import com.team2898.engine.logic.ILooper
+import com.team2898.engine.logic.SelfCheckManager
 import com.team2898.engine.logic.Subsystem
 import com.team2898.engine.motion.TalonWrapper
 import com.team2898.robot.config.ManipConf.*
 import com.team2898.robot.config.RobotMap.MANIP_TALON
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
+import edu.wpi.first.wpilibj.DriverStation
 import kotlin.math.*
-
 
 object Manipulator : Subsystem(50.0, "manipulator"), ILooper {
     override val enableTimes: List<GamePeriods> = listOf(GamePeriods.AUTO, GamePeriods.TELEOP)
@@ -61,6 +63,15 @@ object Manipulator : Subsystem(50.0, "manipulator"), ILooper {
     }
 
     override fun selfCheckup(): Boolean {
+        if (talon.pwmPos == 0) {
+            try {
+                throw SelfCheckFailException("Manipulator talon mag encoder not found", LogLevel.WARNING)
+            } catch (e: SelfCheckFailException) {
+                DriverStation.reportError(e.reason, true)
+            }
+            return false
+        }
+        Logger.logInfo("Maniplator selfCheckup", LogLevel.INFO, "selfCheckup Passed!")
         return true
     }
 
@@ -69,6 +80,6 @@ object Manipulator : Subsystem(50.0, "manipulator"), ILooper {
     }
 
     fun rehome() {
-        talon.sensorCollection.setQuadraturePosition((talon.sensorCollection.pulseWidthPosition - ABSO_OFFSET).roundToInt(), 0)
+        talon.sensorCollection.setQuadraturePosition(((talon.sensorCollection.pulseWidthPosition and 0xFFF)- ABSO_OFFSET).roundToInt(), 0)
     }
 }

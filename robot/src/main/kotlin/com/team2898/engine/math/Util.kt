@@ -12,6 +12,7 @@ fun Int.square() = this * this
 
 fun clamp(value: Double, magnitude: Double) = clamp(value, -magnitude, magnitude)
 fun clamp(value: Double, min: Double, max: Double) = Math.min(max, Math.max(min, value))
+fun clamp(value: Int, min: Int, max: Int) = Math.min(max, Math.max(min, value))
 
 
 fun avg(vararg numbers: Double): Double {
@@ -37,4 +38,3 @@ fun l1(vararg numbers: Double): Double =
 
 fun l2(vararg numbers: Double): Double =
     avg(*numbers.map { it.square() }.toDoubleArray()).sqrt()
-

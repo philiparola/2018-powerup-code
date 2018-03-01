@@ -1,7 +1,9 @@
 package com.team2898.robot.subsystems
 
 import com.ctre.phoenix.motorcontrol.ControlMode
-import com.team2898.engine.async.AsyncLooper
+import com.team2898.engine.logging.LogLevel
+import com.team2898.engine.logging.Logger
+import com.team2898.engine.logging.SelfCheckFailException
 import com.team2898.engine.logic.GamePeriods
 import com.team2898.engine.logic.ILooper
 import com.team2898.engine.logic.ISelfCheck
@@ -10,22 +12,19 @@ import com.team2898.engine.motion.TalonWrapper
 import com.team2898.robot.config.ElevatorConf.*
 import com.team2898.robot.config.RobotMap.ELEV_MASTER_CANID
 import com.team2898.robot.config.RobotMap.ELEV_SLAVE1_CANID
-import com.team2898.robot.config.RobotMap.ELEV_SLAVE2_CANID
-import com.team2898.robot.config.RobotMap.ELEV_SLAVE3_CANID
-import org.apache.commons.math3.geometry.euclidean.twod.Vector2D
+import edu.wpi.first.wpilibj.DriverStation
 import kotlin.math.PI
 import kotlin.math.roundToInt
 
-object Elevator : Subsystem(name = "Elevator", loopHz = 100.0), ISelfCheck, ILooper {
+object Elevator : Subsystem(name = "Elevator", loopHz = 50.0), ISelfCheck, ILooper {
     override val enableTimes: List<GamePeriods> = listOf(GamePeriods.TELEOP, GamePeriods.AUTO)
 
     val master = TalonWrapper(ELEV_MASTER_CANID)
     val slaves = listOf(
-            TalonWrapper(ELEV_SLAVE1_CANID),
-            TalonWrapper(ELEV_SLAVE2_CANID),
-            TalonWrapper(ELEV_SLAVE3_CANID)
-    ).forEach { it slaveTo master }
-
+            TalonWrapper(ELEV_SLAVE1_CANID)
+//            TalonWrapper(ELEV_SLAVE2_CANID),
+//            TalonWrapper(ELEV_SLAVE3_CANID)
+    ).apply { forEach { it slaveTo master } }
 
     var targetPosFt: Double = 0.0
         set(value) {
@@ -36,11 +35,9 @@ object Elevator : Subsystem(name = "Elevator", loopHz = 100.0), ISelfCheck, ILoo
             master.set(ftToEncPos(field).toDouble())
         }
 
-    var posTickOffset = 0
 
     val currentPosFt
-        get() = encPosToFt(master.getSelectedSensorPosition(0))
-
+        get() = encPosToFt(master.getSelectedSensorPosition(0)) * 2
 
     fun ftSecToEncVel(vel: Double): Int {
         return (vel * 12.0 *// ft/s -> in/sec
@@ -58,11 +55,11 @@ object Elevator : Subsystem(name = "Elevator", loopHz = 100.0), ISelfCheck, ILoo
     }
 
     fun ftToEncPos(ft: Double): Int {
-        return (ft * 12.0 * 1 / (SPROCKET_PITCH_DIA * PI) * 4096.0).roundToInt() + posTickOffset
+        return (ft / 2 * 12.0 * 1 / (SPROCKET_PITCH_DIA * PI) * 4096.0).roundToInt()
     }
 
     fun encPosToFt(tick: Int): Double {
-        return ((tick - posTickOffset).toDouble() * (1.0 / 4096.0) * (SPROCKET_PITCH_DIA * PI) / 12.0)
+        return (tick.toDouble() * (1.0 / 4096.0) * (SPROCKET_PITCH_DIA * PI) / 12.0)
     }
 
     init {
@@ -73,14 +70,25 @@ object Elevator : Subsystem(name = "Elevator", loopHz = 100.0), ISelfCheck, ILoo
             configPeakCurrentDuration(ELEV_PEAK_MAX_AMPS_DUR_MS, 0)
             enableCurrentLimit(ELEV_CURRENT_LIMIT)
 
-            configMotionCruiseVelocity(ftSecToEncVel(ELEV_MAX_VEL), 0)
-            configMotionAcceleration(ftSecToEncVel(ELEV_MAX_ACC), 0)
+            setPID(ELEV_Kp, ELEV_Ki, ELEV_Kd, ELEV_Kf)
+
+            configMotionCruiseVelocity(ELEV_MAX_VEL.roundToInt(), 0)
+            configMotionAcceleration(ELEV_MAX_ACC.roundToInt(), 0)
 
             setSelectedSensorPosition(0, 0, 0)
         }
     }
 
     override fun selfCheckup(): Boolean {
+        if (master.pwmPos == 0) {
+            try {
+                throw SelfCheckFailException("Mag encoder not found!", LogLevel.WARNING)
+            } catch (e: SelfCheckFailException) {
+                DriverStation.reportError(e.reason, true)
+            }
+            return false
+        }
+        Logger.logInfo("Elevator selfCheckup", LogLevel.INFO, "selfCheckup Passed!")
         return true
     }
 
@@ -88,4 +96,3 @@ object Elevator : Subsystem(name = "Elevator", loopHz = 100.0), ISelfCheck, ILoo
         return true
     }
 }
-

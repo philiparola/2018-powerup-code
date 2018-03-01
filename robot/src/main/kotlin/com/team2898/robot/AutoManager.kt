@@ -16,7 +16,7 @@ object AutoManager {
     }
 
     enum class TargetAutos {
-        SWITCH, SCALE, TWO_CUBE_SWITCH, TWO_CUBE_SCALE
+        SWITCH, SCALE, TWO_CUBE_SWITCH, TWO_CUBE_SCALE, BASE_LINE
     }
 
     val invalidAutos = listOf(
@@ -57,6 +57,8 @@ object AutoManager {
                 StartLocations.LEFT -> AutoPair(start, target, SwitchFromLeft())
             }
         }
+        if (target == TargetAutos.BASE_LINE)
+            return AutoPair(start, target, Baseline())
         return AutoPair(start, target, Baseline())
     }
 }
