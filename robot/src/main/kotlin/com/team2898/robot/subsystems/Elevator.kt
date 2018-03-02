@@ -8,6 +8,7 @@ import com.team2898.engine.logic.GamePeriods
 import com.team2898.engine.logic.ILooper
 import com.team2898.engine.logic.ISelfCheck
 import com.team2898.engine.logic.Subsystem
+import com.team2898.engine.math.clamp
 import com.team2898.engine.motion.TalonWrapper
 import com.team2898.robot.config.ElevatorConf.*
 import com.team2898.robot.config.RobotMap.ELEV_MASTER_CANID
@@ -28,11 +29,8 @@ object Elevator : Subsystem(name = "Elevator", loopHz = 50.0), ISelfCheck, ILoop
 
     var targetPosFt: Double = 0.0
         set(value) {
-            field = if (value > MAX_HEIGHT_FT) MAX_HEIGHT_FT
-            else if (value < MIN_HEIGHT_FT) MIN_HEIGHT_FT
-            else value
-            master.changeControlMode(ControlMode.MotionMagic)
-            master.set(ftToEncPos(field).toDouble())
+            field = clamp(value, min= MIN_HEIGHT_FT, max= MAX_HEIGHT_FT)
+            master.set(ControlMode.MotionMagic, ftToEncPos(field).toDouble())
         }
 
 

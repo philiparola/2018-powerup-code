@@ -1,17 +1,16 @@
 package com.team2898.robot.commands.manipulator
 
-import com.team2898.robot.config.ManipConf.HEAVY_THROW_FINAL_POS
+import com.team2898.robot.config.ManipConf.HOLD_POS
 import com.team2898.robot.subsystems.Manipulator
 import edu.wpi.first.wpilibj.command.Command
 
-class HeavyThrow(val wait: Boolean = true): Command() {
+class Hold(val wait: Boolean = false) : Command() {
     override fun initialize() {
-        Manipulator.targetPos = HEAVY_THROW_FINAL_POS
+        Manipulator.targetPos = HOLD_POS
     }
 
     override fun isFinished(): Boolean {
         if (!wait) return true
-        return Manipulator.currentPos == HEAVY_THROW_FINAL_POS
+        return Manipulator.currentPos == HOLD_POS
     }
-
 }

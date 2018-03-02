@@ -7,15 +7,12 @@ import edu.wpi.first.wpilibj.command.InstantCommand
 import edu.wpi.first.wpilibj.command.WaitCommand
 
 class LightThrow(val wait: Boolean = true): Command() {
-    override fun isFinished(): Boolean {
-        if (!wait) return true
-        return Manipulator.currentPos() == LIGHT_THROW_FINAL_POS
-    }
-
     override fun initialize() {
         Manipulator.targetPos = LIGHT_THROW_FINAL_POS
     }
 
-
-
+    override fun isFinished(): Boolean {
+        if (!wait) return true
+        return Manipulator.currentPos == LIGHT_THROW_FINAL_POS
+    }
 }

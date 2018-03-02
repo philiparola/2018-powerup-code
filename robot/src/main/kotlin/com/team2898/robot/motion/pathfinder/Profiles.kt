@@ -14,13 +14,12 @@ val rightSwitchFromCenterProfile = arrayOf( // working, starting from center
         Waypoint(10.5,9.0, 0.0)
 )
 
-val leftSwitchFromCenterProfile = arrayOf( // testing, should not work // TODO
+val leftSwitchFromCenterProfile = arrayOf( // works
         Waypoint(1.5, 13.0, 0.0),
         Waypoint(2.5, 13.0, 0.0),
-        Waypoint(9.5, 17.0, 0.0),
-        Waypoint(10.5,17.0, 0.0)
+        Waypoint(9.5, 19.0, 0.0),
+        Waypoint(10.5,19.0, 0.0)
 )
-
 val leftSwitchFromLeftProfile = arrayOf( // testing, should not work // TODO
         Waypoint(1.5, 23.0, 0.0),
         Waypoint(10.0, 23.0, 0.0),

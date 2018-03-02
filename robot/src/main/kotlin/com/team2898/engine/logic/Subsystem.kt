@@ -12,6 +12,7 @@ abstract class Subsystem(val loopHz: Double, name: String) : ILooper, ISelfCheck
 
     init {
         LoopManager.register(this) // TODO: Figure out of the leaky 'this' is much of an issue
+        SelfCheckManager.register(this)
     }
 
 

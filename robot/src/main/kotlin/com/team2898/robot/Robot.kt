@@ -12,6 +12,7 @@ import com.team2898.robot.commands.Teleop
 import com.team2898.robot.config.RobotConf.SCHEDULER_HZ
 import com.team2898.robot.motion.pathfinder.*
 import com.team2898.engine.extensions.Vector2D.*
+import com.team2898.engine.logic.SelfCheckManager
 import com.team2898.engine.motion.DriveSignal
 import com.team2898.robot.commands.auto.Baseline
 import com.team2898.robot.commands.auto.WaitAuto
@@ -23,7 +24,6 @@ import edu.wpi.first.wpilibj.DriverStation
 import edu.wpi.first.wpilibj.TimedRobot
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
-import jdk.nashorn.internal.runtime.options.LoggingOption
 import openrio.powerup.MatchData
 
 class Robot : TimedRobot() {
@@ -34,11 +34,12 @@ class Robot : TimedRobot() {
     val teleopCommand = Teleop()
 
     var found = false
-    lateinit var startChooser: SendableChooser<AutoManager.StartLocations>
-    lateinit var targetChooser: SendableChooser<AutoManager.TargetAutos>
-    lateinit var secChooser: SendableChooser<Double>
+    val startChooser = SendableChooser<AutoManager.StartLocations>()
+    val targetChooser = SendableChooser<AutoManager.TargetAutos>()
+    val secChooser = SendableChooser<Double>()
 
     override fun robotInit() {
+        SelfCheckManager.checkAll()
         Drivetrain.zeroEncoders()
 
         AsyncLooper(100.0) {
@@ -52,10 +53,10 @@ class Robot : TimedRobot() {
             SmartDashboard.putNumber("intake left pwm pos", (Intake.leftDeployTalon.pwmPos).toDouble())
             SmartDashboard.putNumber("intake right pwm pos", (Intake.rightDeployTalon.pwmPos).toDouble())
             SmartDashboard.putNumber("elev height", Elevator.currentPosFt)
-            SmartDashboard.putNumber("manip angle", Manipulator.currentPos().degrees)
+            SmartDashboard.putNumber("manip angle", Manipulator.currentPos.degrees)
             SmartDashboard.putNumber("manip pwm pos", (Manipulator.talon.sensorCollection.pulseWidthPosition and 0xFFF).toDouble())
-            SmartDashboard.putNumber("manip cos", Manipulator.currentPos().cos)
-            SmartDashboard.putNumber("manip sin", Manipulator.currentPos().sin)
+            SmartDashboard.putNumber("manip cos", Manipulator.currentPos.cos)
+            SmartDashboard.putNumber("manip sin", Manipulator.currentPos.sin)
         }.start()
 
         SmartDashboard.putString("Session UUID", Logger.uuid)
@@ -66,13 +67,11 @@ class Robot : TimedRobot() {
         AsyncLooper(SCHEDULER_HZ) {
             Scheduler.getInstance().run()
         }
-        startingChooser()
-        targetChooser()
-        waitSecond()
+        pushChoosers()
     }
 
-    var tries = 100
     override fun autonomousInit() {
+        var tries = 100
         Drivetrain.controlMode = Drivetrain.ControlModes.OPEN_LOOP
         LoopManager.onAutonomous()
         Logger.logInfo(reflectLocation(), LogLevel.INFO, "Autonomous Init")
@@ -84,9 +83,9 @@ class Robot : TimedRobot() {
 
         if (teleopCommand.isRunning) teleopCommand.cancel()
 
-        while (!found || tries >= 0) {
+        while (!found && tries >= 0) {
             Logger.logInfo("Auto init", LogLevel.WARNING, "Match data still not found")
-            if (DriverStation.getInstance().gameSpecificMessage != null || DriverStation.getInstance().gameSpecificMessage.length == 3) found = true
+            if (DriverStation.getInstance().gameSpecificMessage != null && DriverStation.getInstance().gameSpecificMessage.length == 3) found = true
             tries--
         }
 
@@ -118,24 +117,17 @@ class Robot : TimedRobot() {
         }
     }
 
-    fun startingChooser() {
-        startChooser = SendableChooser<AutoManager.StartLocations>()
+    fun pushChoosers() {
         startChooser.addObject("left", AutoManager.StartLocations.LEFT)
         startChooser.addObject("center", AutoManager.StartLocations.CENTER)
         startChooser.addObject("right", AutoManager.StartLocations.RIGHT)
         SmartDashboard.putData("auto starting", startChooser)
-    }
 
-    fun targetChooser() {
-        targetChooser = SendableChooser<AutoManager.TargetAutos>()
         targetChooser.addObject("Switch", AutoManager.TargetAutos.SWITCH)
         targetChooser.addObject("Scale", AutoManager.TargetAutos.SCALE)
         targetChooser.addObject("Base line", AutoManager.TargetAutos.BASE_LINE)
         SmartDashboard.putData("auto target", targetChooser)
-    }
 
-    fun waitSecond() {
-        secChooser = SendableChooser<Double>()
         secChooser.addDefault("zero", 0.0)
         secChooser.addObject("one", 1.0)
         secChooser.addObject("two", 2.0)

@@ -29,7 +29,8 @@ class TalonWrapper(
     var lastSpeed = Double.NaN
     var lastControlMode = controlMode ?: ControlMode.PercentOutput
 
-    var pwmPos = sensorCollection.pulseWidthPosition and 0xFFF
+    var pwmPos = 10
+        get() = sensorCollection.pulseWidthPosition
 
     @Synchronized
     fun set(value: Double) {

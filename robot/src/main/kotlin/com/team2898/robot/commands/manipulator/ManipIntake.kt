@@ -10,7 +10,7 @@ import edu.wpi.first.wpilibj.command.InstantCommand
 class ManipIntake(val wait: Boolean = true): Command() {
     override fun isFinished(): Boolean {
         if (!wait) return true
-        return Manipulator.currentPos() == INTAKE_POS
+        return Manipulator.currentPos == INTAKE_POS
     }
 
     override fun execute() {
