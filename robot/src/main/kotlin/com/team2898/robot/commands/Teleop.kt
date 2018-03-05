@@ -15,6 +15,9 @@ import com.team2898.robot.config.ElevatorConf.MIN_HEIGHT_FT
 import com.team2898.robot.subsystems.*
 import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard as sd
+import com.ctre.phoenix.motorcontrol.*
+import com.ctre.phoenix.motorcontrol.can.TalonSRX
+import org.apache.commons.math3.geometry.euclidean.twod.Vector2D
 
 class Teleop : Command() {
     //    val HOME = "/home/lvuser"
@@ -40,10 +43,15 @@ class Teleop : Command() {
         index = clamp(index--, 0, elevatorSetpoints.size - 1)
     })
     val raiseIntake = ToggleDebounce(onFall = {
-        Intake.talonTargetPos = Rotation2d.createFromDegrees(Intake.currentPos.first.degrees + 10)
+        Intake.talonTargetPos = Rotation2d.createFromDegrees(Intake.currentPos.degrees + 10)
     })
     val lowerIntake = ToggleDebounce(onFall = {
-        Intake.talonTargetPos = Rotation2d.createFromDegrees(Intake.currentPos.first.degrees - 10)
+        Intake.talonTargetPos = Rotation2d.createFromDegrees(Intake.currentPos.degrees - 10)
+
+    })
+
+    val switchState = ToggleDebounce(onFall = {
+        Intake.switchPistonState()
     })
 
     override fun initialize() {
@@ -54,44 +62,48 @@ class Teleop : Command() {
         Drivetrain.zeroEncoders()
         Navx.reset()
         startTime = Timer.getFPGATimestamp()
+        Intake.reStart()
     }
 
     override fun execute() {
         CheesyDrive.updateQuickTurn(OI.quickTurn)
         Drivetrain.uncorrectedOpenLoopPower = CheesyDrive.updateCheesy(
                 (if (!OI.quickTurn) OI.turn else -OI.leftTrigger + OI.rightTrigger),
-                -OI.throttle,
+                OI.throttle,
                 OI.quickTurn,
                 true
         )
-        if (NOENC) {
-            if (OI.aButton) Manipulator.talon.set(0.3)
-            else if (OI.bButton) Manipulator.talon.set(-0.3)
-            else Manipulator.talon.set(0.0)
-            if (OI.raiseElev) Elevator.master.set(0.4)
-            else if (OI.lowerElev) Elevator.master.set(-0.4)
-            else Elevator.master.set(0.0)
+        //if (OI.opA) Manipulator.talon.set(ControlMode.PercentOutput, .3)
+        //else if(OI.opB) Manipulator.talon.set(ControlMode.PercentOutput, -.3)
+        //else Manipulator.talon.set(ControlMode.PercentOutput, 0.0)
+
+
+        Intake.sparkTargetSpeed = OI.calcIntakeSpeed()
+        if (OI.opLShoulder) Intake.sparkTargetSpeed = Vector2D(-0.3, 0.0)
+        if (OI.opRShoulder) Intake.sparkTargetSpeed = Vector2D(0.0, -0.3)
+
+        if (OI.openPiston) {
+            Intake.pistonState = Intake.PistonState.OPEN
         } else {
-            if (OI.aButton) Hold().start()
-            if (OI.bButton) ManipIntake().start()
-            if (OI.xButton) LightThrow().start()
-            if (OI.yButton) HeavyThrow().start()
-
-            ////// intake piston ////
-            if (OI.closeIntake) Intake.pistonState = Intake.PistonState.CLOSED
-            else Intake.pistonState = Intake.PistonState.OPEN
-
-            ////// Elevator /////
-            Elevator.targetPosFt = elevatorSetpoints[index]
-
-            raiseIntake.buttonPressed(OI.raiseIntake)
-            lowerIntake.buttonPressed(OI.lowerIntake)
-            raiseElevator.buttonPressed(OI.raiseElev)
-            lowerElevator.buttonPressed(OI.lowerElev)
+            Intake.pistonState = Intake.PistonState.CLOSED
         }
 
-        ////// Intake speed ////
-        Intake.sparkTargetSpeed = OI.calcIntakeSpeed()
+//        if (OI.opA) {
+//            Intake.talonTargetPos = Rotation2d.createFromDegrees(80.0)
+//        }
+
+        //Elevator.master.set(ControlMode.PercentOutput, OI.opRTrig - OI.opLTrig)
+
+
+        Intake.leftDeployTalon.set(ControlMode.PercentOutput, OI.opRY/2)
+
+//        Intake.rightDeployTalon.set(ControlMode.PercentOutput, OI.leftTrigger/3)
+//        Intake.leftDeployTalon.set(ControlMode.PercentOutput, OI.leftTrigger/3)
+//
+//        Intake.leftDeployTalon.set(ControlMode.PercentOutput, OI.rightTrigger/3)
+//        Intake.rightDeployTalon.set(ControlMode.PercentOutput, OI.rightTrigger/3)
+
+
     }
 
     override fun isFinished(): Boolean = false

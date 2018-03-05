@@ -24,8 +24,7 @@ object Manipulator : Subsystem(50.0, "manipulator"), ILooper {
     val currentPos: Rotation2d
         get() = encPosToRotation2d(talon.sensorCollection.quadraturePosition.toDouble())
 
-
-    var targetPos = Rotation2d(0.0, 0.0)
+    var targetPos = START_POS
         set(value) {
             if (value != field) {
                 talon.changeControlMode(ControlMode.MotionMagic)
@@ -80,6 +79,6 @@ object Manipulator : Subsystem(50.0, "manipulator"), ILooper {
     }
 
     fun rehome() {
-        talon.sensorCollection.setQuadraturePosition(((talon.sensorCollection.pulseWidthPosition and 0xFFF) - ABSO_OFFSET).roundToInt(), 0)
+        talon.sensorCollection.setQuadraturePosition(((talon.sensorCollection.pulseWidthPosition and 0xFFF) - ABSO_OFFSET).roundToInt(), 10)
     }
 }

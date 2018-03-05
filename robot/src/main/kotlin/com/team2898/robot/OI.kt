@@ -36,7 +36,7 @@ object OI {
     val operatorController: Joystick = Joystick(1)
 
     val throttle
-        get() = process(driverController.getRawAxis(1), square = true)
+        get() = process(driverController.getRawAxis(1))
     val turn
         get() = turn()
     val quickTurn: Boolean
@@ -53,27 +53,41 @@ object OI {
         get() = driverController.getRawButton(6)
 
 
-    val aButton
+    // elev up: op right trig
+    // elev down: op left trig
+
+    // manip forward: op A
+    // manip backwards: op B
+
+    // intake up/down: left stick Y
+    // intake spin: right stick Yp
+
+    val opA
         get() = operatorController.getRawButton(1)
-    val bButton
+    val opB
         get() = operatorController.getRawButton(2)
-    val xButton
+    val opX
         get() = operatorController.getRawButton(3)
-    val yButton
+    val opY
         get() = operatorController.getRawButton(4)
 
-    val raiseElev
-        get() = operatorController.getRawButton(5)
-    val lowerElev
-        get() = operatorController.getRawButton(6)
+    val opLTrig
+        get() = operatorController.getRawAxis(2)
+    val opRTrig
+        get() = operatorController.getRawAxis(3)
 
-    val closeIntake
+    val opLY
+        get() = operatorController.getRawAxis(1)
+    val opRY
+        get() = operatorController.getRawAxis(5)
+    val opLShoulder
+        get()= operatorController.getRawButton(5)
+    val opRShoulder
+        get()= operatorController.getRawButton(6)
+
+    val openPiston
         get() = operatorController.getRawButton(9)
 
-    val raiseIntake
-        get() = (operatorController.getRawAxis(3) < -0.5)
-    val lowerIntake
-        get() = (operatorController.getRawAxis(3) > 0.5)
 
     // intake spark -> joystick left Y
     // deploy talons -> button D pad up and down ish
@@ -98,6 +112,6 @@ object OI {
         val x = operatorController.getRawAxis(1) // power
         val y = operatorController.getRawAxis(2) // offset ish
         // left, right
-        return Vector2D(x - sign(y) * abs(1 - y), x + sign(y) * abs(1 - y))
+        return Vector2D(x - sign(y) * abs(1 - y), (x + sign(y) * abs(1 - y)))
     }
 }

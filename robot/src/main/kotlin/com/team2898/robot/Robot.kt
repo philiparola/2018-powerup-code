@@ -12,6 +12,7 @@ import com.team2898.robot.commands.Teleop
 import com.team2898.robot.config.RobotConf.SCHEDULER_HZ
 import com.team2898.robot.motion.pathfinder.*
 import com.team2898.engine.extensions.Vector2D.*
+import com.team2898.engine.kinematics.Rotation2d
 import com.team2898.engine.logic.SelfCheckManager
 import com.team2898.engine.motion.DriveSignal
 import com.team2898.robot.commands.auto.Baseline
@@ -32,6 +33,7 @@ class Robot : TimedRobot() {
     }
 
     val teleopCommand = Teleop()
+    val auto = Baseline()
 
     var found = false
     val startChooser = SendableChooser<AutoManager.StartLocations>()
@@ -42,71 +44,67 @@ class Robot : TimedRobot() {
         SelfCheckManager.checkAll()
         Drivetrain.zeroEncoders()
 
-        AsyncLooper(100.0) {
+        CameraServer.getInstance().startAutomaticCapture(0)
+        AsyncLooper(25.0) {
             SmartDashboard.putNumber("NavX yaw", Navx.yaw)
-            SmartDashboard.putNumber("intake angle 1", Intake.currentPos.first.degrees)
-            SmartDashboard.putNumber("intake angle 2", Intake.currentPos.second.degrees)
-            SmartDashboard.putNumber("intake left sin", Intake.currentPos.first.sin)
-            SmartDashboard.putNumber("intake left cos", Intake.currentPos.first.cos)
-            SmartDashboard.putNumber("intake right sin", Intake.currentPos.second.sin)
-            SmartDashboard.putNumber("intake right cos", Intake.currentPos.second.cos)
-            SmartDashboard.putNumber("intake left pwm pos", (Intake.leftDeployTalon.pwmPos).toDouble())
-            SmartDashboard.putNumber("intake right pwm pos", (Intake.rightDeployTalon.pwmPos).toDouble())
-            SmartDashboard.putNumber("elev height", Elevator.currentPosFt)
-            SmartDashboard.putNumber("manip angle", Manipulator.currentPos.degrees)
-            SmartDashboard.putNumber("manip pwm pos", (Manipulator.talon.sensorCollection.pulseWidthPosition and 0xFFF).toDouble())
-            SmartDashboard.putNumber("manip cos", Manipulator.currentPos.cos)
-            SmartDashboard.putNumber("manip sin", Manipulator.currentPos.sin)
+            SmartDashboard.putNumber("intake left cos", Intake.currentPos.cos)
+            SmartDashboard.putNumber("intake right sin", Intake.currentPos.sin)
+            SmartDashboard.putNumber("current intake degrees", Intake.currentPos.degrees)
+            SmartDashboard.putNumber("voltage", Intake.leftDeployTalon.motorOutputVoltage)
+            SmartDashboard.putNumber("target pos", Intake.talonTargetPos.degrees)
+            SmartDashboard.putNumber("tatget enc pos", Intake.rotation2dToEncPos(Intake.talonTargetPos))
         }.start()
 
         SmartDashboard.putString("Session UUID", Logger.uuid)
 
         Intake.rehome()
-        Manipulator.rehome()
+//        Manipulator.rehome()
 
-        AsyncLooper(SCHEDULER_HZ) {
-            Scheduler.getInstance().run()
-        }
-        pushChoosers()
+//        pushChoosers()
     }
 
     override fun autonomousInit() {
-        var tries = 100
+//        var tries = 100
         Drivetrain.controlMode = Drivetrain.ControlModes.OPEN_LOOP
         LoopManager.onAutonomous()
         Logger.logInfo(reflectLocation(), LogLevel.INFO, "Autonomous Init")
         Navx.reset()
+        auto.start()
 
-        val start = startChooser.selected
-        val target = targetChooser.selected
-        val waitSecond = secChooser.selected
-
-        if (teleopCommand.isRunning) teleopCommand.cancel()
-
-        while (!found && tries >= 0) {
-            Logger.logInfo("Auto init", LogLevel.WARNING, "Match data still not found")
-            if (DriverStation.getInstance().gameSpecificMessage != null && DriverStation.getInstance().gameSpecificMessage.length == 3) found = true
-            tries--
-        }
-
-        if (found) {
-            WaitAuto(AutoManager.produceAuto(start, target).commnad, waitSecond).start()
-        } else {
-            DriverStation.reportWarning("Executing baseline command()", false)
-            WaitAuto(Baseline(), waitSecond).start()
-        }
+//        val start = startChooser.selected
+//        val target = targetChooser.selected
+//        val waitSecond = secChooser.selected
+//
+//        if (teleopCommand.isRunning) teleopCommand.cancel()
+//
+//        while (!found && tries >= 0) {
+//            Logger.logInfo("Auto init", LogLevel.WARNING, "Match data still not found")
+//            if (DriverStation.getInstance().gameSpecificMessage != null && DriverStation.getInstance().gameSpecificMessage.length == 3) found = true
+//            tries--
+//        }
+//
+//        if (found) {
+//            WaitAuto(AutoManager.produceAuto(start, target).commnad, waitSecond).start()
+//        } else {
+//            DriverStation.reportWarning("Executing baseline command()", false)
+//            WaitAuto(Baseline(), waitSecond).start()
+//        }
     }
 
     override fun teleopInit() {
         Logger.logInfo(reflectLocation(), LogLevel.INFO, "Teleop Init")
         Drivetrain.controlMode = Drivetrain.ControlModes.OPEN_LOOP
         LoopManager.onTeleop()
-
+        teleopCommand.start()
     }
 
     override fun disabledInit() {
         LoopManager.onDisable()
     }
+    override fun autonomousPeriodic() {
+            Scheduler.getInstance().run()}
+    override fun teleopPeriodic() {
+            Scheduler.getInstance().run()}
 
     override fun disabledPeriodic() {
         if (!found) {
@@ -115,6 +113,7 @@ class Robot : TimedRobot() {
                 Logger.logInfo("Disabled Periodic", LogLevel.INFO, "Match Data found")
             }
         }
+            Scheduler.getInstance().run()
     }
 
     fun pushChoosers() {

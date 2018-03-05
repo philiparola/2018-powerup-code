@@ -12,7 +12,6 @@ import com.team2898.engine.logic.Subsystem
 import com.team2898.engine.motion.TalonWrapper
 import com.team2898.robot.config.IntakeConf.*
 import com.team2898.robot.config.RobotMap.INTAKE_LEFT
-import com.team2898.robot.config.RobotMap.INTAKE_RIGHT
 import edu.wpi.first.wpilibj.DoubleSolenoid
 import edu.wpi.first.wpilibj.DriverStation
 import edu.wpi.first.wpilibj.Spark
@@ -23,10 +22,9 @@ import kotlin.math.roundToInt
 object Intake : ILooper, Subsystem(50.0, "Intake") {
     override val enableTimes: List<GamePeriods> = listOf(GamePeriods.AUTO, GamePeriods.TELEOP)
 
-    val leftDeployTalon = TalonWrapper(INTAKE_LEFT) // deployy
-    val rightDeployTalon = TalonWrapper(INTAKE_RIGHT)
+    val leftDeployTalon = TalonWrapper(INTAKE_LEFT)
 
-    val leftSpark = Spark(SPARK_LEFT) // spinning thingyyyy
+    val leftSpark = Spark(SPARK_LEFT)
     val rightSpark = Spark(SPARK_RIGHT)
     val leftPiston = DoubleSolenoid(LEFT_INTAKE_SOLENOID_FORWARD_ID, LEFT_INTAKE_SOLENOID_REVERSE_ID)
     val rightPiston = DoubleSolenoid(RIGHT_INTAKE_SOLENOID_FORWARD_ID, RIGHT_INTAKE_SOLENOID_REVERSE_ID)
@@ -43,8 +41,8 @@ object Intake : ILooper, Subsystem(50.0, "Intake") {
             if (field != value) {
                 field = value
                 when (field) {
-                    PistonState.CLOSED -> pistons.forEach { it.set(DoubleSolenoid.Value.kForward) }
-                    PistonState.OPEN -> pistons.forEach { it.set(DoubleSolenoid.Value.kReverse) }
+                    PistonState.CLOSED -> pistons.forEach { it.set(DoubleSolenoid.Value.kReverse) }
+                    PistonState.OPEN -> pistons.forEach { it.set(DoubleSolenoid.Value.kForward) }
                 }
             }
         }
@@ -54,8 +52,12 @@ object Intake : ILooper, Subsystem(50.0, "Intake") {
         rotation2d.radians / 2 / PI * 4096
     }
 
+    val test = {
+        leftDeployTalon.sensorCollection.pulseWidthPosition.toDouble() / 4096 * 2 * PI
+    }
+
     val encPosToRotation2d = { enc: Int ->
-        Rotation2d.createFromRadians(enc / 4096 * 2 * PI)
+        Rotation2d.createFromRadians(enc.toDouble() / 4096 * 2 * PI)
     }
 
     var sparkTargetSpeed = Vector2D(0.0, 0.0)
@@ -70,20 +72,18 @@ object Intake : ILooper, Subsystem(50.0, "Intake") {
             field = if (value.degrees > MAX_POS) Rotation2d.createFromDegrees(MAX_POS)
             else if (value.degrees < MIN_POS) Rotation2d.createFromDegrees(MIN_POS)
             else value
-            listOf(leftDeployTalon, rightDeployTalon).forEach {
-                it.set(ControlMode.Position, rotation2dToEncPos(field))
+            listOf(leftDeployTalon).forEach {
+                it.changeControlMode(ControlMode.MotionMagic)
+                it.set(rotation2dToEncPos(field))
             }
         }
 
-    val currentPos: Pair<Rotation2d, Rotation2d>
-        get() = Pair(
-                encPosToRotation2d(leftDeployTalon.sensorCollection.quadraturePosition),
-                encPosToRotation2d(rightDeployTalon.sensorCollection.quadraturePosition)
-        )
+    val currentPos: Rotation2d
+        get() = encPosToRotation2d(leftDeployTalon.sensorCollection.quadraturePosition)
 
 
     init {
-        listOf(leftDeployTalon, rightDeployTalon).forEach {
+        listOf(leftDeployTalon).forEach {
             it.apply {
                 setMagEncoder()
                 configPeakCurrentLimit(INTAKE_PEAK_MAX_AMPS, 0)
@@ -98,13 +98,12 @@ object Intake : ILooper, Subsystem(50.0, "Intake") {
         }
     }
 
-    override fun onStart() {
-        this.talonTargetPos = Rotation2d(1.0, 0.0)
+    fun reStart() {
+        this.talonTargetPos = Rotation2d(0.0, 1.0)
     }
 
     fun rehome() {
         leftDeployTalon.sensorCollection.setQuadraturePosition(((leftDeployTalon.sensorCollection.pulseWidthPosition and 0xFFF) - ABSO_OFFSET_LEFT).roundToInt(), 0)
-        rightDeployTalon.sensorCollection.setQuadraturePosition(((rightDeployTalon.sensorCollection.pulseWidthPosition and 0xFFF) - ABSO_OFFSET_RIGHT).roundToInt(), 0)
     }
 
     override fun selfCheckup(): Boolean {
@@ -117,16 +116,13 @@ object Intake : ILooper, Subsystem(50.0, "Intake") {
                 DriverStation.reportError(e.reason, true)
             }
         }
-        if (rightDeployTalon.pwmPos == 0) {
-            fail = true
-            try {
-                throw SelfCheckFailException("Right intake talon mag encoder now found", LogLevel.WARNING)
-            } catch (e: SelfCheckFailException) {
-                DriverStation.reportError(e.reason, true)
-            }
-        }
         if (!fail) Logger.logInfo("Intake selfCheckup", LogLevel.INFO, "selfCheckup Passed!")
         return !fail
+    }
+
+    fun switchPistonState() {
+        if (pistonState == PistonState.CLOSED) pistonState == PistonState.OPEN
+        if (pistonState == PistonState.OPEN) pistonState == PistonState.CLOSED
     }
 
 }

@@ -1,70 +1,53 @@
 package com.team2898.engine.motion
 
+import edu.wpi.first.wpilibj.DigitalOutput
 import edu.wpi.first.wpilibj.Timer
 import kotlin.math.max
 import kotlin.math.sign
 
 class TrapezoidProfile(
-        var maxAcc: Double,
-        var maxVel: Double,
-        val currentPos: () -> Double,
-        val time: () -> Double = { Timer.getFPGATimestamp() }
+        var maxAcc: Double, // in FSTU
+        var maxVel: Double, // in FSTU
+        var currentVel: () -> Double,
+        var currentPos: () -> Double
 ) {
-    var lastTime = 0.0
-    var timeToMaxVel = maxVel / maxAcc
+    var startTime = 0.0
+
+    var timeToZero = maxVel / maxAcc
         get() = maxVel / maxAcc
-        set(timeToMax) {
-            maxAcc = maxVel / field
+
+    var targetPos = 0.0
+        set(value) { field = value }
+        get() = field
+
+    var timeToMax: () -> Double = {
+        if (currentVel() == maxVel) {
+            0.0
+        } else {
+            (maxVel - currentVel()) / maxAcc
         }
-
-    var timeFromMaxVel = 0.0
-    val timeTotal
-        get() = timeFromMaxVel + timeToMaxVel
-
-    var sign = 0.0
-
-    var timeOffset: Double
-
-    init {
-        timeOffset = time()
     }
 
-    var goalPos: Double = 0.0
-        set(goal) { // set to set trapezoidal goal
-            timeOffset = time()
-            val setpoint = goal - currentPos()
-            sign = sign(setpoint)
-            val deltaPosMaxVel = (sign * setpoint) - (timeToMaxVel * maxVel)
-            val timeAtMaxVel = deltaPosMaxVel / maxVel
-            timeFromMaxVel = timeToMaxVel + timeAtMaxVel
-            lastTime = time()
-            field = goal
-        }
+    val hasTodecelerate = {  // assuming it's max vel, and distance it takes to zero it
+        var offset = targetPos - currentPos()
+        val time = (offset * 2) / currentVel()
+//        offset = t * currentVel() + (maxAcc/2) * Math.pow(t, 2.0)
+    }
 
-    var velSetpoint = 0.0
-        get() {
-            posSetpoint // trigger get() lul
-            return field
-        }
+    // d = tv + 1/2 a t^2
+    // t =
 
-    var posSetpoint: Double = 0.0
-        get() { // get to get position controller input
-            val time = time()-timeOffset
-            val dt = time - lastTime
-            if (time < timeToMaxVel) {
-                field += (maxAcc * time * dt * sign)
-                velSetpoint = (maxAcc * time * sign)
-            } else if (time < timeFromMaxVel) {
-                field += maxVel * dt * sign
-                velSetpoint = maxVel * sign
-            } else if (time < timeTotal) {
-                val decelTime = time - timeFromMaxVel // Time we've been deaccelerating
-                val vel = maxVel - maxAcc * decelTime
-                field += vel * dt * sign
-                velSetpoint = vel * sign
-            }
-            lastTime = time
-            return field
-        }
+    // max vel, max acc
 
+    // d = (v1 + v2) / 2 * t
+    // d / (v1 + v2) = 1 / 2 * t
+
+    fun updateTarget(target: Double) {
+        startTime = Timer.getFPGATimestamp()
+        targetPos = target
+    }
+
+    fun updateProfile(currentTime: Double = Timer.getFPGATimestamp(), currentVel: Double, currentPos: Double) {
+        val deltaTime = currentTime - startTime
+    }
 }

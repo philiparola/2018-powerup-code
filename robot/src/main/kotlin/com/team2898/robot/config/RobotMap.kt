@@ -9,7 +9,7 @@ const val ELEV_MASTER_CANID = 7
 const val ELEV_SLAVE1_CANID = 6
 
 const val INTAKE_LEFT = 5
-const val INTAKE_RIGHT = 9
+//const val INTAKE_RIGHT = 9
 
 const val PDP_CANID = 5
 

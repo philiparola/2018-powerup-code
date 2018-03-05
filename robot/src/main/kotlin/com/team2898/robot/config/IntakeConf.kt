@@ -12,17 +12,17 @@ const val INTAKE_Kp = 0.043
 const val INTAKE_Ki = 0.0001
 const val INTAKE_Kd = 0.0
 
-const val LEFT_INTAKE_SOLENOID_FORWARD_ID = 0
-const val LEFT_INTAKE_SOLENOID_REVERSE_ID = 0
+const val LEFT_INTAKE_SOLENOID_FORWARD_ID = 4
+const val LEFT_INTAKE_SOLENOID_REVERSE_ID = 5
 
-const val RIGHT_INTAKE_SOLENOID_FORWARD_ID = 0
-const val RIGHT_INTAKE_SOLENOID_REVERSE_ID = 0
+const val RIGHT_INTAKE_SOLENOID_FORWARD_ID = 7
+const val RIGHT_INTAKE_SOLENOID_REVERSE_ID = 6
 
 const val INTAKE_MAX_VEL: Int = 1000 // TODO in FSTU
 const val INTAKE_MAX_ACC: Int = 1000 // TODO
 
-const val MAX_POS = 110.0 // TODO in angle
-const val MIN_POS = 0.0 // TODO
+const val MAX_POS = 70.0 // TODO in angle
+const val MIN_POS = -30.0 // TODO
 
-const val ABSO_OFFSET_LEFT = 2212.0 // TODO
-const val ABSO_OFFSET_RIGHT = 0.0 // TODO
+const val ABSO_OFFSET_LEFT = 1600.0 // TODO
+const val ABSO_OFFSET_RIGHT = 410.0 // TODO
