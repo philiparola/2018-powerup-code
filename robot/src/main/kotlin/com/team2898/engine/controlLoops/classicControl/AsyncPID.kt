@@ -29,7 +29,6 @@ class AsyncPID(
 
     var getSensorInput: () -> Double = {
         throw NotImplementedError("Warning: getSensorInput() -> Double not implemented")
-        0.0
     }
         @Synchronized get
         @Synchronized set

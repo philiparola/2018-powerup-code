@@ -6,7 +6,6 @@ import com.team2898.engine.math.clamp
 import com.team2898.engine.motion.CheesyDrive
 import edu.wpi.first.wpilibj.command.Command
 import com.team2898.robot.OI
-import com.team2898.robot.commands.manipulator.*
 import com.team2898.robot.config.ControllerConf.NOENC
 import com.team2898.robot.config.ElevatorConf.ELEV_SCALE_HEIGHT
 import com.team2898.robot.config.ElevatorConf.ELEV_SWICH_HEIGHT
@@ -31,28 +30,8 @@ class Teleop : Command() {
 //            File("$HOME/right9V.csv"),
 //            File("$HOME/right12V.csv")
 //    )
+
     var startTime = 0.0
-
-    val elevatorSetpoints = listOf(MIN_HEIGHT_FT, ELEV_SWICH_HEIGHT, ELEV_SCALE_HEIGHT, MAX_HEIGHT_FT)
-    var index = 0
-
-    val raiseElevator = ToggleDebounce(onFall = {
-        index = clamp(index++, 0, elevatorSetpoints.size - 1)
-    })
-    val lowerElevator = ToggleDebounce(onFall = {
-        index = clamp(index--, 0, elevatorSetpoints.size - 1)
-    })
-    val raiseIntake = ToggleDebounce(onFall = {
-        Intake.talonTargetPos = Rotation2d.createFromDegrees(Intake.currentPos.degrees + 10)
-    })
-    val lowerIntake = ToggleDebounce(onFall = {
-        Intake.talonTargetPos = Rotation2d.createFromDegrees(Intake.currentPos.degrees - 10)
-
-    })
-
-    val switchState = ToggleDebounce(onFall = {
-        Intake.switchPistonState()
-    })
 
     override fun initialize() {
         if (!NOENC) {
@@ -62,7 +41,6 @@ class Teleop : Command() {
         Drivetrain.zeroEncoders()
         Navx.reset()
         startTime = Timer.getFPGATimestamp()
-        Intake.reStart()
     }
 
     override fun execute() {
@@ -77,31 +55,6 @@ class Teleop : Command() {
         //else if(OI.opB) Manipulator.talon.set(ControlMode.PercentOutput, -.3)
         //else Manipulator.talon.set(ControlMode.PercentOutput, 0.0)
 
-
-        Intake.sparkTargetSpeed = OI.calcIntakeSpeed()
-        if (OI.opLShoulder) Intake.sparkTargetSpeed = Vector2D(-0.3, 0.0)
-        if (OI.opRShoulder) Intake.sparkTargetSpeed = Vector2D(0.0, -0.3)
-
-        if (OI.openPiston) {
-            Intake.pistonState = Intake.PistonState.OPEN
-        } else {
-            Intake.pistonState = Intake.PistonState.CLOSED
-        }
-
-//        if (OI.opA) {
-//            Intake.talonTargetPos = Rotation2d.createFromDegrees(80.0)
-//        }
-
-        //Elevator.master.set(ControlMode.PercentOutput, OI.opRTrig - OI.opLTrig)
-
-
-        Intake.leftDeployTalon.set(ControlMode.PercentOutput, OI.opRY/2)
-
-//        Intake.rightDeployTalon.set(ControlMode.PercentOutput, OI.leftTrigger/3)
-//        Intake.leftDeployTalon.set(ControlMode.PercentOutput, OI.leftTrigger/3)
-//
-//        Intake.leftDeployTalon.set(ControlMode.PercentOutput, OI.rightTrigger/3)
-//        Intake.rightDeployTalon.set(ControlMode.PercentOutput, OI.rightTrigger/3)
 
 
     }
