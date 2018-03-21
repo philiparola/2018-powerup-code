@@ -1,4 +1,4 @@
-package com.team2898.robot.commands
+package com.team2898.robot.commands.testcommand
 
 import com.ctre.phoenix.motorcontrol.ControlMode
 import com.team2898.engine.controlLoops.classicControl.PVAPID
