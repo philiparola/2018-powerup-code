@@ -152,7 +152,10 @@ object Intake : Subsystem(50.0, "Intake") {
 
 
     override fun onLoop() {
-
+        leftProfiler.targetPos = targetSurfaceSpeeds.first
+        rightProfiler.targetPos = targetSurfaceSpeeds.second
+        functionModeSM.update()
+        controlModeSM.update()
     }
 
     // Todo: Actually calculate cube orientation
