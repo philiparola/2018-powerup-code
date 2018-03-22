@@ -1,9 +1,11 @@
 package com.team2898.engine.math
 
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D
+import org.apache.commons.math3.linear.RealMatrix
 import kotlin.math.absoluteValue
 
 val kEpsilon: Double = 1.0E-8
+
 
 fun Double.square() = Math.pow(this, 2.0)
 fun Double.sqrt() = Math.sqrt(this)
@@ -34,7 +36,7 @@ fun prod(vararg numbers: Double): Double {
 }
 
 fun l1(vararg numbers: Double): Double =
-    sum(*numbers.map{it.absoluteValue}.toDoubleArray())
+        sum(*numbers.map { it.absoluteValue }.toDoubleArray())
 
 fun l2(vararg numbers: Double): Double =
-    avg(*numbers.map { it.square() }.toDoubleArray()).sqrt()
+        avg(*numbers.map { it.square() }.toDoubleArray()).sqrt()

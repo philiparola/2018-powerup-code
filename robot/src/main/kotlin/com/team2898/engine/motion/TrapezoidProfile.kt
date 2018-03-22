@@ -7,9 +7,7 @@ import kotlin.math.max
 
 class TrapezoidProfile(
         var maxAcc: Double, // in FSTU
-        var maxVel: Double, // in FSTU
-        var currentVelGetter: () -> Double,
-        var currentPosGetter: () -> Double
+        var maxVel: Double // in FSTU
 ) {
     data class PVAData(
             val currentPos: Double,

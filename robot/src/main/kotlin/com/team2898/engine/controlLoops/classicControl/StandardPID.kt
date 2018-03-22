@@ -1,5 +1,6 @@
 package com.team2898.engine.controlLoops
 
+import com.team2898.engine.math.clamp
 import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj.util.BoundaryException
 
@@ -34,12 +35,7 @@ open class StandardPID {
 
     var setpoint: Double = 0.0
         set(value) {
-            if (value > this.maxIn)
-                field = maxIn
-            else if (value < minIn)
-                field = minIn
-            else
-                field = value
+                field = clamp(value,min=minIn,max=maxIn)
         } // Bound value to min and max input values
 
     var error: Double = 0.0
