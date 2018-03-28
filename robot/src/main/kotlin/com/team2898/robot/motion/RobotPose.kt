@@ -16,7 +16,7 @@ import com.team2898.robot.subsystems.Drivetrain
 import kotlin.properties.Delegates
 
 object RobotPose : ILooper {
-    override val enableTimes = listOf(GamePeriods.TELEOP, GamePeriods.AUTO)
+    override val enableTimes = listOf(GamePeriods.TELEOP, GamePeriods.AUTO, GamePeriods.DISABLE)
 
     val backlog = CircularArray<Timestamp<RigidTransform2d>>(POSE_BACKLOG_SIZE)
     val runEvery = RunEvery(RUN_EVERY_NUMBER)
@@ -25,9 +25,9 @@ object RobotPose : ILooper {
     }
 
     init {
-        backlog.add(Timestamp<RigidTransform2d>(stamp=RigidTransform2d(Translation2d(), Rotation2d())))
-        backlog.add(Timestamp<RigidTransform2d>(stamp=RigidTransform2d(Translation2d(), Rotation2d())))
-        backlog.add(Timestamp<RigidTransform2d>(stamp=RigidTransform2d(Translation2d(), Rotation2d())))
+        backlog.add(Timestamp(stamp = RigidTransform2d(Translation2d(), Rotation2d())))
+        backlog.add(Timestamp(stamp = RigidTransform2d(Translation2d(), Rotation2d())))
+        backlog.add(Timestamp(stamp = RigidTransform2d(Translation2d(), Rotation2d())))
         println("Pose backlog size is $POSE_BACKLOG_SIZE")
     }
 
@@ -38,13 +38,12 @@ object RobotPose : ILooper {
     }
 
     override val loop = AsyncLooper(100.0) {
-//        println("Odometry loop ran! Latest entry is ${backlog[0]}")
+        //        println("Odometry loop ran! Latest entry is ${backlog[0]}")
         val encoderPos = Drivetrain.encPosIn
         val deltaPos = encoderPos - lastEncoderPosition
-        pose = integrateForwardKinematics(pose,
-                forwardKinematics(deltaPos)
-        )
+        pose = integrateForwardKinematics(pose, forwardKinematics(deltaPos) )
         lastEncoderPosition = encoderPos
+        println(pose)
 
 
         if (runEvery.shouldRun())

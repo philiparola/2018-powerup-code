@@ -12,7 +12,6 @@ class BasicStateSpaceController<E : Enum<*>>(numInputs: Int, numOutputs: Int, nu
     init {
     }
 
-    override fun update(r: RealMatrix, x: RealMatrix): RealMatrix {
-        return r - (K*x)
-    }
+    override fun update(r: RealMatrix, x: RealMatrix): RealMatrix =
+            r - (K * x)
 }

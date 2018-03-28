@@ -25,3 +25,9 @@ fun integrateForwardKinematics(currentPose: RigidTransform2d, delta: Twist2d): R
     currentY += delta.dy * Math.sin(currentHeading)
     return RigidTransform2d(Translation2d(currentX, currentY), Rotation2d.createFromRadians(currentHeading))
 }
+
+//fun forwardKinematicsGyro(currentPose: RigidTransform2d, wheelDeltas: Pair<Double, Double>, heading: Double) {
+//    val forwardDistance = wheelDeltas.avg()
+//    val cosPlus =
+//}
+

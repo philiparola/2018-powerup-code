@@ -6,10 +6,7 @@ import com.team2898.engine.logic.GamePeriods
 object NTHandler {
 
     //val miscTable = Robot.ntInstance.getTable("misc")
-    //val navTable = Robot.ntInstance.getTable("nav")
-
-    fun setGamePeriod(mode: GamePeriods) {
-    }
+    val navTable = NT.getTable("nav")
 
     init {
     }

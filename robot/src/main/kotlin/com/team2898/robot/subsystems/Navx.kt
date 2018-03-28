@@ -15,13 +15,11 @@ import com.team2898.engine.logic.GamePeriods
 import com.team2898.engine.logic.RunEvery
 
 
-object Navx: ISelfCheck, ILooper {
+object Navx : ISelfCheck, ILooper {
 
     override val enableTimes = listOf(GamePeriods.AUTO, GamePeriods.TELEOP)
 
-    val navx = AHRS(NAVX_PORT)
-
-    var angleAdjustment = Rotation2d()
+    val navx = AHRS(NAVX_PORT, 100)
 
 
     // in degrees
@@ -29,7 +27,7 @@ object Navx: ISelfCheck, ILooper {
         get() = navx.yaw.toDouble()
     // in degrees/second
     val yawRate: Double
-        get() = navx.rate.toDouble()
+        get() = navx.rate
     val rotation: Rotation2d
         get() = Rotation2d.createFromDegrees(yaw)
 
@@ -41,13 +39,13 @@ object Navx: ISelfCheck, ILooper {
         }
     }
 
-    @Synchronized fun reset() {
+    @Synchronized
+    fun reset() {
         navx.reset()
     }
 
-    override fun selfCheckup(): Boolean {
-        return false
-    }
+    override fun selfCheckup(): Boolean
+        = navx.isConnected
 
     override fun selfTest(): Boolean = selfCheckup()
 }

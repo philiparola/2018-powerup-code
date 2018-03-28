@@ -28,8 +28,8 @@ class TrapezoidProfile(
 
     val currentTime = { Timer.getFPGATimestamp() }
 
-    private var currentPos = 0.0
-    private var currentVel = 0.0
+    var currentPos = 0.0
+    var currentVel = 0.0
 
     private var OFFSET = 0.0
 
@@ -82,7 +82,6 @@ class TrapezoidProfile(
 
     fun updateCurrentState() {
         currentState = if (abs(targetPos - currentPos) < targetPos / OFFSET && abs(currentVel) < maxVel / OFFSET) {
-            println("Finished")
             isFinished = true
             CurrentState.REST
         } else if (hasToDec() || dec) {
@@ -153,11 +152,11 @@ class TrapezoidProfile(
                 )
             }
         }
-        println("vel: ${lastProfile.targetVel}, pos: ${lastProfile.targetPos}, finished: ${isFinished}")
+        //println("vel: ${lastProfile.targetVel}, pos: ${lastProfile.targetPos}, finished: ${isFinished}")
         return lastProfile
     }
 
-    fun isinished(): Boolean {
+    fun isFinished(): Boolean {
         return isFinished
     }
 }

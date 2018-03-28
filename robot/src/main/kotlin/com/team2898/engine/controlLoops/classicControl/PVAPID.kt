@@ -3,11 +3,12 @@ package com.team2898.engine.controlLoops.classicControl
 import com.ctre.phoenix.motorcontrol.VelocityMeasPeriod
 import com.team2898.engine.math.clamp
 import edu.wpi.first.wpilibj.Timer
+import kotlin.math.abs
 
 /** 3DOF PID Controller for simultanious control of position, velocity, and acceleration
- * @param Kp
+ * @param Kpp
  *  Position: Proportional gain
- * @param Ki
+ * @param Kpi
  *  Position: Integral gain
  * @param Kvp
  *  Velocity: Proportional gain
@@ -18,15 +19,18 @@ import edu.wpi.first.wpilibj.Timer
  *
  */
 
-class PVAPID(val Kp: Double, val Ki: Double,
+class PVAPID(val Kpp: Double, val Kpi: Double,
              val Kvp: Double, val Kvf: (Double) -> Double, // (target speed) -> -1 to 1
              val Kaf: Double, val Kpf: () -> Double,
              val integratorMax: Double = Double.MAX_VALUE,
              val integratorMin: Double = Double.MIN_VALUE,
-             val integratorDecayFactor: Double = 1.0,
              val minOutput: Double = -1.0,
-             val maxOutput: Double = 1.0) {
+             val maxOutput: Double = 1.0,
+             val maxInput: Double = 1.0,
+             val minInput: Double = -1.0) {
 
+    var prevPosError = Double.NaN
+    var prevVelError = Double.NaN
 
     var integrator: Double = 0.0
 
@@ -40,13 +44,16 @@ class PVAPID(val Kp: Double, val Ki: Double,
         val posError = position - targetPos
         val velError = velocity - targetVel
 
+        prevPosError = posError
+        prevVelError = velError
+
         integrator += posError * dt
 
-        var output = Kpf() + Kp * posError + Kvp * velError + Kvf(targetVel) + Kaf * targetAcc
+        var output = Kpf() + Kpp * posError + Kvp * velError + Kvf(targetVel) + Kaf * targetAcc
 
         if (minOutput <= output && output <= maxOutput) {
             integrator += posError * dt
-            output += Ki * integrator
+            output += Kpi * integrator
         } else integrator = 0.0
 
 
@@ -58,7 +65,12 @@ class PVAPID(val Kp: Double, val Ki: Double,
         return output
     }
 
-    fun reset() {
 
+    fun onTarget(allowablePosError: Double, allowableVelError: Double) =
+            abs(prevPosError) < abs(allowablePosError) && abs(prevVelError) < abs(allowableVelError)
+
+    fun reset() {
+        integrator = 0.0
+        lastTime = Double.NaN
     }
 }

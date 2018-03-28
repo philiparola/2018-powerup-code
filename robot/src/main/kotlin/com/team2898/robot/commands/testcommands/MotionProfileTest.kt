@@ -1,6 +1,5 @@
-package com.team2898.robot.commands
+package com.team2898.robot.commands.testcommands
 
-import com.team2898.engine.extensions.Vector2D.get
 import com.team2898.engine.math.avg
 import com.team2898.engine.motion.DriveSignal
 import com.team2898.engine.extensions.get
@@ -8,11 +7,9 @@ import com.team2898.robot.motion.pathfinder.*
 import com.team2898.robot.subsystems.Drivetrain
 import com.team2898.robot.subsystems.Navx
 import edu.wpi.first.wpilibj.command.Command
-import edu.wpi.first.wpilibj.command.WaitCommand
 import jaci.pathfinder.Pathfinder
 import jaci.pathfinder.followers.EncoderFollower
 import java.io.File
-import com.team2898.robot.motion.pathfinder.ProfilesSettings.*
 import jaci.pathfinder.Trajectory
 
 
@@ -28,7 +25,7 @@ class MotionProfileTest : Command() {
             sampleRate = Trajectory.Config.SAMPLES_HIGH
     )
 
-    val profile = ProfileGenerator.deferProfile(testProfile)
+    val profile = ProfileGenerator.genProfile(testProfile)
     val left = EncoderFollower(profile.first)
     val right = EncoderFollower(profile.second)
 

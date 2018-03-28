@@ -29,8 +29,8 @@ class ProfileFollower(profile: Pair<Trajectory, Trajectory>) : Command() {
     var t = 0
 
     val leftPVA = PVAPID(
-            Kp = 0.005,
-            Ki = 0.001,
+            Kpp = 0.005,
+            Kpi = 0.001,
             Kvp = 0.0,
             Kvf = { speed: Double ->
                 // speed = f/s
@@ -41,8 +41,8 @@ class ProfileFollower(profile: Pair<Trajectory, Trajectory>) : Command() {
     )
 
     val rightPVA = PVAPID(
-            Kp = 0.005,
-            Ki = 0.001,
+            Kpp = 0.005,
+            Kpi = 0.001,
             Kvp = 0.0,
             Kvf = { speed: Double ->
                 // speed = f/s

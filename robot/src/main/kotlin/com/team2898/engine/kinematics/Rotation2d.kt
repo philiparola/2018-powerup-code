@@ -97,6 +97,6 @@ class Rotation2d : Interpolable<Rotation2d> {
     }
 
     override fun toString(): String {
-        return "${"%.3f".format(degrees)} deg"
+        return "cos: ${"%.3f".format(cos)} sin: ${"%.3f".format(sin)} deg: ${"%.3f".format(degrees)}"
     }
 }

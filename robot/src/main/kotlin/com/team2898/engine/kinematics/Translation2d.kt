@@ -71,5 +71,5 @@ class Translation2d : Interpolable<Translation2d> {
             )
 
     override fun toString(): String =
-            "[${"%.3f".format(position.x)}, ${"%.3f".format(position.y)}]"
+            "[x: ${"%.3f".format(position.x)}, y: ${"%.3f".format(position.y)}]"
 }

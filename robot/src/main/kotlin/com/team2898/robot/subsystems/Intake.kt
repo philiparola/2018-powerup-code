@@ -14,6 +14,8 @@ import com.team2898.engine.math.linear.Matrix
 import com.team2898.engine.math.linear.get
 import com.team2898.engine.motion.TalonWrapper
 import com.team2898.engine.motion.TrapezoidProfile
+import com.team2898.engine.types.Quadruple
+import com.team2898.robot.config.ArmConf.ARM_CONT_MAX_AMPS
 import com.team2898.robot.config.IntakeConf.*
 import com.team2898.robot.config.RobotMap.INTAKE_LEFT_CANID
 import com.team2898.robot.config.RobotMap.INTAKE_RIGHT_CANID
@@ -23,6 +25,7 @@ Treat each as 775pro w/ 10:1 reduction
 
  */
 
+/*
 object Intake : Subsystem(50.0, "Intake") {
     override val enableTimes = listOf(GamePeriods.AUTO, GamePeriods.TELEOP)
 
@@ -91,18 +94,18 @@ object Intake : Subsystem(50.0, "Intake") {
     init {
         masters {
             enableCurrentLimit(true)
-            configContinuousCurrentLimit(INTAKE_CONT_MAX_AMPS, 0)
-            configPeakCurrentDuration(INTAKE_PEAK_MAX_AMPS, 0)
-            configPeakCurrentLimit(INTAKE_PEAK_MAX_AMPS_DUR_MS, 0)
+            configContinuousCurrentLimit(INTAKE_CONT_MAX_AMPS, 10)
+            configPeakCurrentDuration(INTAKE_PEAK_MAX_AMPS, 10)
+            configPeakCurrentLimit(INTAKE_PEAK_MAX_AMPS_DUR_MS, 10)
 
             enableVoltageCompensation(true)
-            configVoltageCompSaturation(12.0, 0)
+            configVoltageCompSaturation(12.0, 10)
         }
         functionModeSM.changeStateTo(functionMode)
         controlModeSM.changeStateTo(controlMode)
 
         functionModeSM.registerWhile(FunctionModes.LIDAR_ASSIST) {
-            val cube = calcCubeOrientationDistance(VL53l0X.getDistances())
+            val cube = calcCubeOrientationDistance(CubeLidar.distances)
             if (cube.x > INTAKEN_CUBE_THRESHOLD) {
                 // todo fix
                 targetLidarAlignSurfaceSpeed =
@@ -159,7 +162,7 @@ object Intake : Subsystem(50.0, "Intake") {
     }
 
     // Todo: Actually calculate cube orientation
-    private fun calcCubeOrientationDistance(lidarDistances: Triple<Double, Double, Double>): RigidTransform2d {
+    private fun calcCubeOrientationDistance(lidarDistances: Quadruple<Double, Double, Double, Double>): RigidTransform2d {
         return RigidTransform2d(Translation2d(0.0, 0.0), Rotation2d(1.0, 0.0))
     }
 
@@ -184,4 +187,35 @@ object Intake : Subsystem(50.0, "Intake") {
 
     private fun voltageToRpm(voltage: Double): Double =
             voltage / 12.0 * 18730 * INTAKE_GEARING
+}
+        */
+
+object Intake : Subsystem(50.0, "intake") {
+    override val enableTimes = listOf(GamePeriods.TELEOP, GamePeriods.AUTO)
+    val leftTalon = TalonWrapper(INTAKE_LEFT_CANID)
+    val rightTalon = TalonWrapper(INTAKE_RIGHT_CANID)
+
+    init {
+        listOf(leftTalon, rightTalon).forEach {
+            it.apply {
+                configNeutralDeadband(0.01, 10)
+                enableCurrentLimit(true)
+                configContinuousCurrentLimit(INTAKE_CONT_MAX_AMPS, 10)
+                configPeakCurrentDuration(INTAKE_PEAK_MAX_AMPS, 10)
+                configPeakCurrentLimit(INTAKE_PEAK_MAX_AMPS_DUR_MS, 10)
+                enableVoltageCompensation(true)
+                configVoltageCompSaturation(12.0, 10)
+                configOpenloopRamp(.25,0)
+            }
+        }
+    }
+
+    var power = Pair(0.0, 0.0)
+        set(new) {
+            field = new
+            leftTalon.setOpenLoop(new.first)
+            rightTalon.setOpenLoop(new.second)
+        }
+
+
 }

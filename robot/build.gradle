@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlin_version = '1.2.21'
+    ext.kotlin_version = '1.2.31'
     ext.serialization_version = '0.4'
     repositories {
         jcenter()
@@ -16,7 +16,7 @@ buildscript {
 plugins {
     id "java"
     id "idea"
-    id "jaci.openrio.gradle.GradleRIO" version "2018.02.17"
+    id "jaci.openrio.gradle.GradleRIO" version "2018.03.06"
 }
 
 apply plugin: 'kotlinx-serialization'
@@ -43,6 +43,7 @@ deploy {
     targets {
         target("roborio", jaci.openrio.gradle.frc.RoboRIO) {
             addresses << '10.28.98.2'
+            addresses << '172.22.11.2'
             team = 2898
         }
     }
@@ -61,6 +62,10 @@ repositories {
     maven { url "http://dl.bintray.com/jetbrains/spek" }
     mavenLocal()
     maven { url "https://kotlin.bintray.com/kotlinx" }
+}
+wpi {
+    ctreVersion = '5.3.1.0'
+    wpilibVersion = '2018.4.1'
 }
 
 dependencies {
@@ -99,6 +104,12 @@ dependencies {
     compile fileTree(dir: 'libs', include: '**/*.jar')
     // nativeLib fileTree(dir: 'libs', include: '**/*.so')
 }
+
+wpi {
+    ctreVersion = '5.3.1.0'
+    wpilibVersion = '2018.4.1'
+}
+
 
 kotlin {
     experimental {

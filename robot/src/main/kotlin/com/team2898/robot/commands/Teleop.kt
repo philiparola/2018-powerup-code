@@ -7,15 +7,15 @@ import com.team2898.engine.motion.CheesyDrive
 import edu.wpi.first.wpilibj.command.Command
 import com.team2898.robot.OI
 import com.team2898.robot.config.ControllerConf.NOENC
-import com.team2898.robot.config.ElevatorConf.ELEV_SCALE_HEIGHT
-import com.team2898.robot.config.ElevatorConf.ELEV_SWICH_HEIGHT
-import com.team2898.robot.config.ElevatorConf.MAX_HEIGHT_FT
-import com.team2898.robot.config.ElevatorConf.MIN_HEIGHT_FT
 import com.team2898.robot.subsystems.*
 import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard as sd
 import com.ctre.phoenix.motorcontrol.*
 import com.ctre.phoenix.motorcontrol.can.TalonSRX
+import com.team2898.robot.config.ArmConf.SETPOINT_1_DEG
+import com.team2898.robot.config.ArmConf.SETPOINT_2_DEG
+import com.team2898.robot.config.ArmConf.SETPOINT_3_DEG
+import com.team2898.robot.config.ArmConf.SETPOINT_4_DEG
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D
 
 class Teleop : Command() {
@@ -41,6 +41,7 @@ class Teleop : Command() {
         Drivetrain.zeroEncoders()
         Navx.reset()
         startTime = Timer.getFPGATimestamp()
+        Arm.targetRotation = Rotation2d.createFromDegrees(90.0)
     }
 
     override fun execute() {
@@ -49,13 +50,23 @@ class Teleop : Command() {
                 (if (!OI.quickTurn) OI.turn else -OI.leftTrigger + OI.rightTrigger),
                 OI.throttle,
                 OI.quickTurn,
-                true
+                false
         )
         //if (OI.opA) Manipulator.talon.set(ControlMode.PercentOutput, .3)
         //else if(OI.opB) Manipulator.talon.set(ControlMode.PercentOutput, -.3)
         //else Manipulator.talon.set(ControlMode.PercentOutput, 0.0)
 
+        val intakePower = OI.opLY
+        val intakeMod = (OI.rightTrigger - OI.leftTrigger) * 0.5
+        Intake.power = Pair(
+                clamp(intakePower - intakeMod, 1.0),
+                clamp(intakePower + intakeMod, 1.0)
+        )
 
+        if (OI.opA) Arm.targetRotation = Rotation2d.createFromDegrees(SETPOINT_3_DEG)
+        else if (OI.opB) Arm.targetRotation = Rotation2d.createFromDegrees(SETPOINT_2_DEG)
+        else if (OI.opX) Arm.targetRotation = Rotation2d.createFromDegrees(SETPOINT_4_DEG)
+        else if (OI.opY) Arm.targetRotation = Rotation2d.createFromDegrees(SETPOINT_1_DEG)
 
     }
 

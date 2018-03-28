@@ -29,8 +29,8 @@ class TalonWrapper(
     var lastSpeed = Double.NaN
     var lastControlMode = controlMode ?: ControlMode.PercentOutput
 
-    var pwmPos = 10
-        get() = sensorCollection.pulseWidthPosition
+    val pwmPos
+        get() = sensorCollection.pulseWidthPosition and 0xFFF
 
     @Synchronized
     fun set(value: Double) {
@@ -78,7 +78,7 @@ class TalonWrapper(
 
     @Synchronized
     fun setMagEncoder() {
-        configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 0)
+        configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 10)
     }
 
     @Synchronized
