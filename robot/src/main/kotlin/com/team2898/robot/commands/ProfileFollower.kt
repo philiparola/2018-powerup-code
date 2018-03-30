@@ -14,7 +14,7 @@ import jaci.pathfinder.Trajectory
 import kotlin.math.abs
 import kotlin.math.sign
 
-class ProfileFollower(profile: Pair<Trajectory, Trajectory>) : Command() {
+class ProfileFollower(profile: Pair<Trajectory, Trajectory>, val reverse: Boolean = false) : Command() {
     val leftTraj = profile.first
     val rightTraj = profile.second
 
@@ -28,22 +28,23 @@ class ProfileFollower(profile: Pair<Trajectory, Trajectory>) : Command() {
         get() = Drivetrain.encPosFt - encoderOffset
     var t = 0
 
+    // ft, ft/s, ft/s^2 -> volts
     val leftPVA = PVAPID(
-            Kpp = 0.005,
-            Kpi = 0.001,
-            Kvp = 0.0,
+            Kpp = 0.006,
+            Kpi = 0.002,
+            Kvp = 0.01,
             Kvf = { speed: Double ->
                 // speed = f/s
                 ((if (abs(speed) > 0.1) abs(speed) - LEFT_B else 0.0) / LEFT_M) / 12.0 * sign(speed) // motor setpoint
             },
-            Kaf = 0.05,
+            Kaf = 0.04,
             Kpf = { 0.0 }
     )
 
     val rightPVA = PVAPID(
-            Kpp = 0.005,
-            Kpi = 0.001,
-            Kvp = 0.0,
+            Kpp = 0.006,
+            Kpi = 0.002,
+            Kvp = 0.01,
             Kvf = { speed: Double ->
                 // speed = f/s
                 ((if (abs(speed) > 0.1) abs(speed) - RIGHT_B else 0.0) / RIGHT_M) / 12.0 * sign(speed) // motor setpoint
@@ -72,27 +73,33 @@ class ProfileFollower(profile: Pair<Trajectory, Trajectory>) : Command() {
         val leftSeg = leftTraj.segments.get(currentSegment)
         val rightSeg = rightTraj.segments.get(currentSegment)
 
-        val desiredHeading = Pathfinder.r2d(leftSeg.heading)
+        val sign = if (reverse) -1 else 1
+
+        val desiredHeading = Pathfinder.r2d(leftSeg.heading*sign)
         val angleDifference = Pathfinder.boundHalfDegrees(desiredHeading + Navx.yaw)
-        val kp = 0.8
+        val kp = 1.0
         val turn = kp * (-1.0 / 80.0) * angleDifference
+
 
         val left = leftPVA.update(
                 currentDistance[0],
                 Drivetrain.encVelInSec[0] / 12.0,
-                leftSeg.position,
-                leftSeg.velocity,
-                leftSeg.acceleration
+                leftSeg.position*sign,
+                leftSeg.velocity*sign,
+                leftSeg.acceleration*sign
         )
 
         val right = rightPVA.update(
                 currentDistance[1],
                 Drivetrain.encVelInSec[1] / 12.0,
-                rightSeg.position,
-                rightSeg.velocity,
-                rightSeg.acceleration
+                rightSeg.position*sign,
+                rightSeg.velocity*sign,
+                rightSeg.acceleration*sign
         )
-        Drivetrain.openLoopPower = DriveSignal(left + turn, right - turn)
+        if (!reverse)
+            Drivetrain.openLoopPower = DriveSignal(left + turn, right - turn)
+        else
+            Drivetrain.openLoopPower = DriveSignal(right - turn, left + turn)
         t++
     }
 

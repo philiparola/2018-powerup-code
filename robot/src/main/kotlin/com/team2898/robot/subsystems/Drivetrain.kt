@@ -13,7 +13,7 @@ import kotlin.math.sign
 
 object Drivetrain : Subsystem(50.0, "Drivetrain") {
 
-    enum class ControlModes { OPEN_LOOP, BASE_LOCK, VELOCITY_DRIVE }
+    enum class ControlModes { OPEN_LOOP, BASE_LOCK, VELOCITY_DRIVE,MOTION_MAGIC }
 
     val leftMaster = TalonWrapper(LEFT_MASTER_CANID)
     val rightMaster = TalonWrapper(RIGHT_MASTER_CANID)
@@ -68,6 +68,8 @@ object Drivetrain : Subsystem(50.0, "Drivetrain") {
             openLoopPower = uncor.copy(left = leftCorr, right = rightCorr)
         }
 
+    var mmDistance = DriveSignal.BRAKE
+
     var closedLoopVelTarget = DriveSignal.NEUTRAL
 
     var baseLockTarget = Pair(0, 0)
@@ -119,7 +121,13 @@ object Drivetrain : Subsystem(50.0, "Drivetrain") {
 
             setStatusFramePeriod(StatusFrameEnhanced.Status_2_Feedback0, 10, 0)
             setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 10, 0)
+
         }
+        leftMaster.configMotionCruiseVelocity(L_MM_CRUISE_STU,10)
+        rightMaster.configMotionCruiseVelocity(R_MM_CRUISE_STU,10)
+        leftMaster.configMotionAcceleration(L_MM_ACC_STU2,10)
+        rightMaster.configMotionAcceleration(R_MM_ACC_STU2,10)
+
         rightMaster.setSensorPhase(true) // test bot
 
         driveStateMachine.apply {
@@ -143,6 +151,10 @@ object Drivetrain : Subsystem(50.0, "Drivetrain") {
                 masters {
                     setPID(Kp, Ki, Kd, Kf, 1, 128)
                 }
+            }
+            registerWhile(ControlModes.MOTION_MAGIC) {
+                leftMaster.set(ControlMode.MotionMagic, mmDistance.left)
+                rightMaster.set(ControlMode.MotionMagic, mmDistance.right)
             }
         }
 

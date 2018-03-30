@@ -9,38 +9,28 @@ import com.team2898.engine.logic.ILooper
 import com.team2898.engine.logic.Subsystem
 import com.team2898.engine.types.Quadruple
 import edu.wpi.first.wpilibj.SerialPort
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard as sd
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JSON
 
 
-object CubeLidar : ILooper {
-    override val loop = AsyncLooper(25.0) {
-        val result: String? = arduino.readString()
-        //println(result)
-        if (result != null && result.length > 10) {
-            try {
-                val json = result
-                //val res = JSON().parse<Response>(json)
-                val res = json.split(',')
-                distances = Quadruple(res[0].toInt(), res[1].toInt(), res[2].toInt(), res[3].toInt())
-            } catch (e: Exception) {
-            }
-        }
+object CubeLidar {
 
-    }
-    override val enableTimes = listOf(GamePeriods.AUTO, GamePeriods.TELEOP, GamePeriods.DISABLE)
+    val distances: Quadruple<Double, Double, Double, Double>
+        get() =
+            Quadruple(
+                    sd.getNumber("LIDAR1", 0.0),
+                    sd.getNumber("LIDAR2", 0.0),
+                    sd.getNumber("LIDAR3", 0.0),
+                    sd.getNumber("LIDAR4", 0.0)
+            )
 
-    @Serializable
-    data class Response(val MEASURE_1: Double, val MEASURE_2: Double, val MEASURE_3: Double, val MEASURE_4: Double)
-
-    var distances = Quadruple(0, 0, 0, 0)
-
-    val arduino = SerialPort(9600, SerialPort.Port.kUSB1, 8, SerialPort.Parity.kNone, SerialPort.StopBits.kOne)
     val cubeOrientation: Rotation2d
-        get() = Rotation2d()
+        get() = Rotation2d.createFromDegrees(
+                sd.getNumber("cube degrees", 0.0)
+        )
 
     init {
-        arduino.enableTermination('\n')
     }
 
 }

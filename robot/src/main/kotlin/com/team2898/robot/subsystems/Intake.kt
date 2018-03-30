@@ -17,8 +17,11 @@ import com.team2898.engine.motion.TrapezoidProfile
 import com.team2898.engine.types.Quadruple
 import com.team2898.robot.config.ArmConf.ARM_CONT_MAX_AMPS
 import com.team2898.robot.config.IntakeConf.*
+import com.team2898.robot.config.RobotMap.INTAKE_FORWARD_PCMID
 import com.team2898.robot.config.RobotMap.INTAKE_LEFT_CANID
+import com.team2898.robot.config.RobotMap.INTAKE_REVERSE_PCMID
 import com.team2898.robot.config.RobotMap.INTAKE_RIGHT_CANID
+import edu.wpi.first.wpilibj.DoubleSolenoid
 
 /*
 Treat each as 775pro w/ 10:1 reduction
@@ -195,6 +198,8 @@ object Intake : Subsystem(50.0, "intake") {
     val leftTalon = TalonWrapper(INTAKE_LEFT_CANID)
     val rightTalon = TalonWrapper(INTAKE_RIGHT_CANID)
 
+    private val solenoid = DoubleSolenoid(INTAKE_FORWARD_PCMID, INTAKE_REVERSE_PCMID)
+
     init {
         listOf(leftTalon, rightTalon).forEach {
             it.apply {
@@ -205,10 +210,16 @@ object Intake : Subsystem(50.0, "intake") {
                 configPeakCurrentLimit(INTAKE_PEAK_MAX_AMPS_DUR_MS, 10)
                 enableVoltageCompensation(true)
                 configVoltageCompSaturation(12.0, 10)
-                configOpenloopRamp(.25,0)
+                configOpenloopRamp(1/12.0, 0)
             }
         }
     }
+
+    var solenoidState = DoubleSolenoid.Value.kForward
+        set(new) {
+            field = new
+            solenoid.set(new)
+        }
 
     var power = Pair(0.0, 0.0)
         set(new) {

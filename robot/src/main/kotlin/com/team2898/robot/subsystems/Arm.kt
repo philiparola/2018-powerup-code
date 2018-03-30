@@ -2,18 +2,21 @@ package com.team2898.robot.subsystems
 
 import com.ctre.phoenix.motorcontrol.ControlMode
 import com.ctre.phoenix.motorcontrol.DemandType
+import com.ctre.phoenix.motorcontrol.NeutralMode
 import com.team2898.engine.async.util.go
 import com.team2898.engine.controlLoops.classicControl.PVAPID
 import com.team2898.engine.kinematics.Rotation2d
 import com.team2898.engine.logic.GamePeriods
 import com.team2898.engine.logic.Subsystem
+import com.team2898.engine.math.clamp
 import com.team2898.engine.motion.TalonWrapper
 import com.team2898.engine.motion.TrapezoidProfile
 import com.team2898.robot.config.ArmConf.*
 import com.team2898.robot.config.RobotMap.ARM_MASTER_CANID
 import com.team2898.robot.config.RobotMap.ARM_SLAVE1_CANID
+import java.lang.Math.abs
 
-object Arm : Subsystem(50.0, "Arm") {
+object Arm : Subsystem(100.0, "Arm") {
     override val enableTimes = listOf(GamePeriods.AUTO, GamePeriods.TELEOP)
 
     val masterTalon = TalonWrapper(ARM_MASTER_CANID)
@@ -34,7 +37,7 @@ object Arm : Subsystem(50.0, "Arm") {
     var targetRotation: Rotation2d = Rotation2d(0.0, 1.0)
         set(new) {
             field = new
-            profiler.updateTarget(field.degrees)
+            profiler.updateTarget(clamp(field.degrees, min = ARM_REVERSE_LIMIT_DEG, max = ARM_FORWARD_LIMIT_DEG))
         }
 
     // Input deg, deg/s, deg/s^2, output volts
@@ -51,12 +54,12 @@ object Arm : Subsystem(50.0, "Arm") {
             configContinuousCurrentLimit(ARM_CONT_MAX_AMPS, 10)
             configPeakCurrentDuration(ARM_PEAK_MAX_AMPS, 10)
             configPeakCurrentLimit(ARM_PEAK_MAX_AMPS_DUR_MS, 10)
-            configNeutralDeadband(0.001, 10)
+            configNeutralDeadband(0.01, 10)
             this slaveTo masterTalon
             setMagEncoder()
         }
         masterTalon.apply {
-            configNeutralDeadband(0.001, 10)
+            configNeutralDeadband(0.01, 10)
             enableCurrentLimit(true)
             configContinuousCurrentLimit(ARM_CONT_MAX_AMPS, 10)
             configPeakCurrentDuration(ARM_PEAK_MAX_AMPS, 10)
@@ -84,10 +87,12 @@ object Arm : Subsystem(50.0, "Arm") {
             configMotionCruiseVelocity(MM_CRUISE_SPEED, 10)
             set(ControlMode.MotionMagic, degreesToTicks(targetRotation.degrees), DemandType.ArbitraryFeedForward, TALON_Kf_ADD * rotation.cos)
 
-            configForwardSoftLimitEnable(true,10)
-            configForwardSoftLimitThreshold(1878,10)
-            configReverseSoftLimitEnable(true,10)
-            configReverseSoftLimitThreshold(-134,10)
+            configForwardSoftLimitEnable(true, 10)
+            configForwardSoftLimitThreshold(ARM_FORWARD_LIMIT, 10)
+            configReverseSoftLimitEnable(true, 10)
+            configReverseSoftLimitThreshold(ARM_REVERSE_LIMIT, 10)
+
+            setNeutralMode(NeutralMode.Coast)
 
         }
 
@@ -96,6 +101,7 @@ object Arm : Subsystem(50.0, "Arm") {
             configContinuousCurrentLimit(ARM_CONT_MAX_AMPS, 10)
             configPeakCurrentDuration(ARM_PEAK_MAX_AMPS, 10)
             configPeakCurrentLimit(ARM_PEAK_MAX_AMPS_DUR_MS, 10)
+            setNeutralMode(NeutralMode.Coast)
         }
     }
 
@@ -123,13 +129,14 @@ object Arm : Subsystem(50.0, "Arm") {
     private fun stuToDegS(stu: Int) = (stuToRpm(stu) / 60.0) * 360.0
 
     private fun degreesToTicks(degrees: Double) = (degrees / 360.0) * 4096.0
+    fun ticksToDegrees(ticks: Int) = (ticks / 4096.0) * 360.0
 
     override fun selfCheckup(): Boolean {
         if (masterTalon.getSelectedSensorPosition(10) == 0) return false
         return true
     }
 
-    fun onTarget() = masterTalon.getClosedLoopError(0) < degreesToTicks(15.0)
+    fun onTarget() = abs(targetRotation.degrees - armDegrees) < 15.0
 
     fun fixEncoder() = masterTalon.setSelectedSensorPosition(Math.abs(masterTalon.pwmPos + ARM_PWM_OFFSET), 0, 10)
 

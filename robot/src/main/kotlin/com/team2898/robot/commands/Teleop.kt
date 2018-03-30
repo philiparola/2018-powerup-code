@@ -16,6 +16,7 @@ import com.team2898.robot.config.ArmConf.SETPOINT_1_DEG
 import com.team2898.robot.config.ArmConf.SETPOINT_2_DEG
 import com.team2898.robot.config.ArmConf.SETPOINT_3_DEG
 import com.team2898.robot.config.ArmConf.SETPOINT_4_DEG
+import edu.wpi.first.wpilibj.DoubleSolenoid
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D
 
 class Teleop : Command() {
@@ -48,7 +49,7 @@ class Teleop : Command() {
         CheesyDrive.updateQuickTurn(OI.quickTurn)
         Drivetrain.uncorrectedOpenLoopPower = CheesyDrive.updateCheesy(
                 (if (!OI.quickTurn) OI.turn else -OI.leftTrigger + OI.rightTrigger),
-                OI.throttle,
+                -OI.throttle,
                 OI.quickTurn,
                 false
         )
@@ -56,17 +57,23 @@ class Teleop : Command() {
         //else if(OI.opB) Manipulator.talon.set(ControlMode.PercentOutput, -.3)
         //else Manipulator.talon.set(ControlMode.PercentOutput, 0.0)
 
-        val intakePower = OI.opLY
-        val intakeMod = (OI.rightTrigger - OI.leftTrigger) * 0.5
+        val intakePower = OI.spaceMouseIntake
+        //val intakeMod = (OI.rightTrigger - OI.leftTrigger) * 0.5
         Intake.power = Pair(
-                clamp(intakePower - intakeMod, 1.0),
-                clamp(intakePower + intakeMod, 1.0)
+                clamp(intakePower - .5 * OI.spaceMouseTurn, 1.0),
+                clamp(intakePower + .5 * OI.spaceMouseTurn, 1.0)
         )
 
-        if (OI.opA) Arm.targetRotation = Rotation2d.createFromDegrees(SETPOINT_3_DEG)
-        else if (OI.opB) Arm.targetRotation = Rotation2d.createFromDegrees(SETPOINT_2_DEG)
-        else if (OI.opX) Arm.targetRotation = Rotation2d.createFromDegrees(SETPOINT_4_DEG)
-        else if (OI.opY) Arm.targetRotation = Rotation2d.createFromDegrees(SETPOINT_1_DEG)
+
+        Arm.targetRotation = Rotation2d.createFromDegrees(sd.getNumber("arm controller deg", 90.0))
+        //if (OI.opA) Arm.targetRotation = Rotation2d.createFromDegrees(SETPOINT_3_DEG)
+        //else if (OI.opB) Arm.targetRotation = Rotation2d.createFromDegrees(SETPOINT_2_DEG)
+        //else if (OI.opX) Arm.targetRotation = Rotation2d.createFromDegrees(SETPOINT_4_DEG)
+        //else if (OI.opY) Arm.targetRotation = Rotation2d.createFromDegrees(SETPOINT_1_DEG)
+
+        if (OI.spaceMouseButton)
+            Intake.solenoidState = DoubleSolenoid.Value.kReverse
+        else Intake.solenoidState = DoubleSolenoid.Value.kForward
 
     }
 

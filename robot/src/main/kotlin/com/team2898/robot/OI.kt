@@ -12,12 +12,12 @@ import kotlin.math.sign
 object OI {
 
     fun deadzone(value: Double): Double {
-        if (Math.abs(value) < 0.15) return 0.0
+        if (Math.abs(value) < 0.10) return 0.0
         return value
     }
 
     fun cube(value: Double): Double = Math.pow(value, 3.0)
-    fun square(value: Double): Double = Math.pow(value, 2.0) * if (value > 0) 1 else -1
+    fun square(value: Double): Double = Math.pow(value, 2.0) * sign(value)
 
     fun process(value: Double, deadzone: Boolean = true, cube: Boolean = false, square: Boolean = false): Double {
         var localValue = value
@@ -36,7 +36,7 @@ object OI {
     val operatorController: Joystick = Joystick(1)
 
     val throttle
-        get() = process(driverController.getRawAxis(1))
+        get() = process(driverController.getRawAxis(1), square = true)
     val turn
         get() = turn()
     val quickTurn: Boolean
@@ -47,6 +47,7 @@ object OI {
         get() = process(driverController.getRawAxis(3) * 0.8, square = true)
     val brake
         get() = driverController.getRawButton(8) || driverController.getRawButton(9)
+
     val lowGear
         get() = driverController.getRawButton(5)
     val highGear
@@ -81,12 +82,19 @@ object OI {
     val opRY
         get() = operatorController.getRawAxis(5)
     val opLShoulder
-        get()= operatorController.getRawButton(5)
+        get() = operatorController.getRawButton(5)
     val opRShoulder
-        get()= operatorController.getRawButton(6)
+        get() = operatorController.getRawButton(6)
 
     val openPiston
         get() = operatorController.getRawButton(9)
+
+    val spaceMouseIntake
+        get() = -process(operatorController.getRawAxis(1))
+    val spaceMouseTurn
+        get() = process(operatorController.getRawAxis(0))
+    val spaceMouseButton
+        get() = operatorController.getRawButton(5)
 
 
     // intake spark -> joystick left Y
