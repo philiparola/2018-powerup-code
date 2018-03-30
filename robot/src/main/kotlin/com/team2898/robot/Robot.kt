@@ -9,6 +9,7 @@ import com.team2898.engine.logging.reflectLocation
 import com.team2898.engine.logic.LoopManager
 import com.team2898.robot.commands.Teleop
 import com.team2898.engine.logic.SelfCheckManager
+import com.team2898.robot.commands.BaselineAuto
 import com.team2898.robot.commands.CharDt
 import com.team2898.robot.commands.SwitchFromCenter
 import com.team2898.robot.motion.RobotPose
@@ -27,6 +28,8 @@ class Robot : TimedRobot() {
 
     var teleopCommand: Command = Teleop()
     var autoCommand: Command = SwitchFromCenter(true)
+
+    var matchData = ""
 
     var found = false
     val secChooser = SendableChooser<Double>()
@@ -81,16 +84,22 @@ class Robot : TimedRobot() {
 
 
     override fun autonomousInit() {
+        var tries = 100
+        while(!found && tries >= 0) {
+            tries --
+            if (DriverStation.getInstance().gameSpecificMessage.length == 3 && DriverStation.getInstance().gameSpecificMessage != null) found = true
+        }
         Drivetrain.controlMode = Drivetrain.ControlModes.OPEN_LOOP
         LoopManager.onAutonomous()
         Logger.logInfo(reflectLocation(), LogLevel.INFO, "Autonomous Init")
         Navx.reset()
 
         Arm.targetRotation = Rotation2d.createFromDegrees(90.0)
-
-        autoCommand = SwitchFromCenter(true)
-        //autoCommand = CharDt(sd.getNumber("char volt",2.0))
-
+        if (found) {
+            autoCommand = SwitchFromCenter(matchData[0] == 'R')
+        } else {
+            autoCommand = BaselineAuto()
+        }
         autoCommand.start()
     }
 
@@ -131,6 +140,7 @@ class Robot : TimedRobot() {
             if (DriverStation.getInstance().gameSpecificMessage != null || DriverStation.getInstance().gameSpecificMessage.length == 3) {
                 found = true
                 Logger.logInfo("GSM Reporter", LogLevel.INFO, "Match Data found")
+                matchData = DriverStation.getInstance().gameSpecificMessage
             }
         }
     }
