@@ -30,7 +30,7 @@ class ProfileFollower(profile: Pair<Trajectory, Trajectory>, val reverse: Boolea
 
     // ft, ft/s, ft/s^2 -> volts
     val leftPVA = PVAPID(
-            Kpp = 0.006,
+            Kpp = 0.004,
             Kpi = 0.002,
             Kvp = 0.01,
             Kvf = { speed: Double ->
@@ -42,7 +42,7 @@ class ProfileFollower(profile: Pair<Trajectory, Trajectory>, val reverse: Boolea
     )
 
     val rightPVA = PVAPID(
-            Kpp = 0.006,
+            Kpp = 0.004,
             Kpi = 0.002,
             Kvp = 0.01,
             Kvf = { speed: Double ->
@@ -63,6 +63,7 @@ class ProfileFollower(profile: Pair<Trajectory, Trajectory>, val reverse: Boolea
         println("the segment size ${leftTraj.segments.size}")
         initElapseTime = elapsedTime
         t = 0
+        Navx.reset()
     }
 
     override fun execute() {
@@ -73,33 +74,29 @@ class ProfileFollower(profile: Pair<Trajectory, Trajectory>, val reverse: Boolea
         val leftSeg = leftTraj.segments.get(currentSegment)
         val rightSeg = rightTraj.segments.get(currentSegment)
 
-        val sign = if (reverse) -1 else 1
-
-        val desiredHeading = Pathfinder.r2d(leftSeg.heading*sign)
+        val desiredHeading = Pathfinder.r2d(leftSeg.heading)
         val angleDifference = Pathfinder.boundHalfDegrees(desiredHeading + Navx.yaw)
         val kp = 1.0
-        val turn = kp * (-1.0 / 80.0) * angleDifference
+        var turn = kp * (-1.0 / 80.0) * angleDifference
 
 
         val left = leftPVA.update(
                 currentDistance[0],
                 Drivetrain.encVelInSec[0] / 12.0,
-                leftSeg.position*sign,
-                leftSeg.velocity*sign,
-                leftSeg.acceleration*sign
+                leftSeg.position,
+                leftSeg.velocity,
+                leftSeg.acceleration
         )
 
         val right = rightPVA.update(
                 currentDistance[1],
                 Drivetrain.encVelInSec[1] / 12.0,
-                rightSeg.position*sign,
-                rightSeg.velocity*sign,
-                rightSeg.acceleration*sign
+                rightSeg.position,
+                rightSeg.velocity,
+                rightSeg.acceleration
         )
-        if (!reverse)
-            Drivetrain.openLoopPower = DriveSignal(left + turn, right - turn)
-        else
-            Drivetrain.openLoopPower = DriveSignal(right - turn, left + turn)
+        turn=0.0
+        Drivetrain.openLoopPower = DriveSignal(right - turn, left + turn)
         t++
     }
 

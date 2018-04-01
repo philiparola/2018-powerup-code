@@ -8,7 +8,7 @@ import edu.wpi.first.wpilibj.command.Command
 import edu.wpi.first.wpilibj.command.TimedCommand
 import java.io.File
 
-class CharDt(val step: Double) : TimedCommand(.5) {
+class CharDt(val step: Double) : TimedCommand(2.0) {
 
     var csv = ""
     var last = Pair(0.0, 0.0)

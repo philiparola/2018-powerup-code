@@ -4,8 +4,8 @@ import com.team2898.engine.controlLoops.modernControl.StateSpaceGains
 import com.team2898.engine.math.linear.Matrix
 
 const val INTAKE_CONT_MAX_AMPS = 10
-const val INTAKE_PEAK_MAX_AMPS = 30
-const val INTAKE_PEAK_MAX_AMPS_DUR_MS = 250
+const val INTAKE_PEAK_MAX_AMPS = 20
+const val INTAKE_PEAK_MAX_AMPS_DUR_MS = 100
 
 // Maximum percent of the baseline surface speed we can add/remove to align the cube
 const val MAX_ORIENTATION_ADJ_PERCENT = 50.0

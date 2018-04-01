@@ -102,7 +102,7 @@ object Drivetrain : Subsystem(50.0, "Drivetrain") {
             enableVoltageCompensation(true)
             configVoltageCompSaturation(12.0, 0)
 
-            setNeutralMode(NeutralMode.Coast)
+            setNeutralMode(NeutralMode.Brake)
 
             setMagEncoder()
 
@@ -122,6 +122,26 @@ object Drivetrain : Subsystem(50.0, "Drivetrain") {
             setStatusFramePeriod(StatusFrameEnhanced.Status_2_Feedback0, 10, 0)
             setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 10, 0)
 
+        }
+        leftSlave.apply {
+            configReverseSoftLimitEnable(false, 10)
+            configForwardSoftLimitEnable(false, 10)
+            configForwardLimitSwitchSource(LimitSwitchSource.Deactivated, LimitSwitchNormal.Disabled, 10)
+            configContinuousCurrentLimit(CONT_MAX_AMPS, 0)
+            configPeakCurrentLimit(PEAK_MAX_AMPS, 0)
+            configPeakCurrentDuration(PEAK_MAX_AMPS_DUR_MS, 0)
+            enableCurrentLimit(CURRENT_LIMIT)
+            setNeutralMode(NeutralMode.Brake)
+        }
+        rightSlave.apply {
+            configReverseSoftLimitEnable(false, 10)
+            configForwardSoftLimitEnable(false, 10)
+            configForwardLimitSwitchSource(LimitSwitchSource.Deactivated, LimitSwitchNormal.Disabled, 10)
+            configContinuousCurrentLimit(CONT_MAX_AMPS, 0)
+            configPeakCurrentLimit(PEAK_MAX_AMPS, 0)
+            configPeakCurrentDuration(PEAK_MAX_AMPS_DUR_MS, 0)
+            enableCurrentLimit(CURRENT_LIMIT)
+            setNeutralMode(NeutralMode.Brake)
         }
         leftMaster.configMotionCruiseVelocity(L_MM_CRUISE_STU,10)
         rightMaster.configMotionCruiseVelocity(R_MM_CRUISE_STU,10)

@@ -5,8 +5,8 @@ const val LEFT_SLAVE_CANID: Int = 3
 const val RIGHT_MASTER_CANID: Int = 2
 const val RIGHT_SLAVE_CANID: Int = 1
 
-const val INTAKE_LEFT_CANID = 8
-const val INTAKE_RIGHT_CANID = 7
+const val INTAKE_LEFT_CANID = 9
+const val INTAKE_RIGHT_CANID = 8
 
 const val INTAKE_FORWARD_PCMID = 6
 const val INTAKE_REVERSE_PCMID = 7

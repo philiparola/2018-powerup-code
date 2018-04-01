@@ -19,9 +19,9 @@ import kotlin.math.abs
  *
  */
 
-class PVAPID(val Kpp: Double, val Kpi: Double,
-             val Kvp: Double, val Kvf: (Double) -> Double, // (target speed) -> -1 to 1
-             val Kaf: Double, val Kpf: () -> Double,
+class PVAPID(val Kpp: Double = 0.0, val Kpi: Double = 0.0,
+             val Kvp: Double = 0.0, val Kvf: (Double) -> Double = { 0.0 }, // (target speed) -> -1 to 1
+             val Kaf: Double = 0.0, val Kpf: () -> Double = { 0.0 },
              val integratorMax: Double = Double.MAX_VALUE,
              val integratorMin: Double = Double.MIN_VALUE,
              val minOutput: Double = -1.0,

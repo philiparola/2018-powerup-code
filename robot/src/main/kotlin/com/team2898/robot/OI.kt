@@ -90,11 +90,11 @@ object OI {
         get() = operatorController.getRawButton(9)
 
     val spaceMouseIntake
-        get() = -process(operatorController.getRawAxis(1))
+        get() = process(operatorController.getRawAxis(1))
     val spaceMouseTurn
-        get() = process(operatorController.getRawAxis(0))
+        get() = process(operatorController.getRawAxis(2))
     val spaceMouseButton
-        get() = operatorController.getRawButton(5)
+        get() = operatorController.getRawButton(1)
 
 
     // intake spark -> joystick left Y
@@ -102,18 +102,7 @@ object OI {
 
 
     fun turn(): Double {
-        if (!TESTING) return process(driverController.getRawAxis(4), square = true) * 0.8
-        val y = driverController.getRawAxis(5)
-        val x = driverController.getRawAxis(4)
-
-        val theta = Math.atan2(y, x)
-        val thetaDeg = Math.toDegrees(theta)
-
-        val thetaTurn = ((thetaDeg - 90) * -1) / 90
-        val magnitude = Vector2D(y, x).l2
-
-        val turn = magnitude * thetaTurn
-        return turn
+        return process(driverController.getRawAxis(4), square = true)
     }
 
     fun calcIntakeSpeed(): Vector2D {

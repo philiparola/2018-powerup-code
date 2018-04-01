@@ -15,11 +15,11 @@ const val LOCK_KI = 0.001
 const val LOCK_KD = 0.000
 
 const val CURRENT_LIMIT = true
-const val CONT_MAX_AMPS = 15
-const val PEAK_MAX_AMPS = 17
-const val PEAK_MAX_AMPS_DUR_MS = 500
+const val CONT_MAX_AMPS = 20
+const val PEAK_MAX_AMPS = 40
+const val PEAK_MAX_AMPS_DUR_MS = 300
 
-const val LEFT_M = 1.26
+const val LEFT_M = .89
 const val LEFT_B = -1.55
 
 const val RIGHT_M = 1.21
